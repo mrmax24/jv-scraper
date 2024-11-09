@@ -2,7 +2,6 @@ package scraper.app;
 
 import scraper.app.config.BrowserDriver;
 import scraper.app.controller.ScraperController;
-import scraper.app.service.DataExtractor;
 import scraper.app.service.ScraperService;
 import scraper.app.storage.DataStorage;
 
@@ -12,7 +11,6 @@ public class Main {
 
     public static void main(String[] args) {
         BrowserDriver browserDriver = new BrowserDriver();
-        DataExtractor dataExtractor = new DataExtractor();
         ScraperService scraperService = new ScraperService();
         DataStorage dataStorage = new DataStorage();
 
