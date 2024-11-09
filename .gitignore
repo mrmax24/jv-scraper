@@ -1,7 +1,9 @@
 HELP.md
 target
 .mvn
-
+mvnw
+mvnw.cmd
+.gitattributes
 
 ### STS ###
 .apt_generated
