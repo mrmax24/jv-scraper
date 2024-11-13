@@ -1,17 +1,13 @@
 package scraper.app.controller;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import scraper.app.service.ScraperService;
-import scraper.app.storage.DataStorage;
 
 @RequiredArgsConstructor
 public class ScraperController {
-    private final ScraperService scraperService;
-    private final DataStorage dataStorage;
+    private final ScraperService scrapperTestService;
 
-    public void startScraping(String url, int pages, String filePath) {
-        List<String> data = scraperService.scrape(url, pages);
-        dataStorage.saveToCsv(data, filePath);
+    public void startScraping(String url, int pages) {
+        scrapperTestService.scrape(url, pages);
     }
 }

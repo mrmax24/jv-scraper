@@ -2,7 +2,10 @@ package scraper.app;
 
 import scraper.app.config.BrowserDriver;
 import scraper.app.controller.ScraperController;
+import scraper.app.service.DataExtractor;
+import scraper.app.service.RecordNavigator;
 import scraper.app.service.ScraperService;
+import scraper.app.service.WebDriverProvider;
 import scraper.app.storage.DataStorage;
 
 public class Main {
@@ -11,11 +14,26 @@ public class Main {
 
     public static void main(String[] args) {
         BrowserDriver browserDriver = new BrowserDriver();
-        ScraperService scraperService = new ScraperService();
-        DataStorage dataStorage = new DataStorage();
+        WebDriverProvider driverProvider = new WebDriverProvider();
+        RecordNavigator recordNavigator = new RecordNavigator();
+        DataExtractor recordExtractor = new DataExtractor(recordNavigator);
 
-        ScraperController scraperController = new ScraperController(scraperService, dataStorage);
-        scraperController.startScraping(RESOURCE_URL, 10, "output.csv");
+        DataStorage dataStorage = new DataStorage("output.csv");
+        Thread dataStorageThread = new Thread(dataStorage);
+        dataStorageThread.start();
+
+        ScraperService scraperService = new ScraperService(driverProvider,
+                recordNavigator, recordExtractor, dataStorage);
+        ScraperController scraperController = new ScraperController(scraperService);
+
+        scraperController.startScraping(RESOURCE_URL, 10);
+
+        dataStorage.finish();
+        try {
+            dataStorageThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         browserDriver.close();
     }
