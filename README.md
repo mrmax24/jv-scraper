@@ -18,7 +18,7 @@ JavaScript commands within the code.
 | `Checkstyle plugin`  | `3.1.1`   |
 
 # How does it work
-1. The scraper opens this [link]("https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search") and clicks the "Search" button.
+1. The scraper opens this [link](https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search) and clicks the "Search" button.
 2. The next step is to extract the first record and open the link inside it.
 3. After opening this link in a new tab, the scraper extracts additional data.
 4. Then, the scraper clicks the "Contacts" button and reads the data table.
@@ -27,7 +27,7 @@ JavaScript commands within the code.
 7. The data is saved to a file output.csv
 
 # How to run this program
-1. Download the code from Github by this [link]("https://github.com/mrmax24/scraper-app")
+1. Download the code from Github by this [link](https://github.com/mrmax24/scraper-app)
 2. Open it in IntelliJ IDEA.
 3. Build the project using the command ```mvn clean install```
 4. Run the program ```scraper.app.Main```
