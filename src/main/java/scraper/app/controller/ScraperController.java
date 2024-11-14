@@ -1,9 +1,9 @@
 package scraper.app.controller;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import scraper.app.service.ScraperService;
 import scraper.app.storage.DataStorage;
-import java.util.List;
 
 @RequiredArgsConstructor
 public class ScraperController {
