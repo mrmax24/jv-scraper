@@ -1,9 +1,8 @@
 # Simple web scrapper
 ```bash
-A Simple Java application written using SpringBoot and Selenium library, 
-enabling scraping of textual data from a website with filter-based search. 
-It also opens additional tabs to extract detailed information by executing 
-JavaScript commands within the code.
+A Simple Java application written using SpringBoot and Selenium library, enabling scraping 
+of textual data from a website with filter-based search. It also opens additional tabs to 
+extract detailed information by executing JavaScript commands within the code.
 ```
 
 ## Used technologies and libraries:
