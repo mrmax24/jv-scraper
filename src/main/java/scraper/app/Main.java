@@ -17,23 +17,13 @@ public class Main {
         WebDriverProvider driverProvider = new WebDriverProvider();
         RecordNavigator recordNavigator = new RecordNavigator();
         DataExtractor recordExtractor = new DataExtractor(recordNavigator);
-
-        DataStorage dataStorage = new DataStorage("output.csv");
-        Thread dataStorageThread = new Thread(dataStorage);
-        dataStorageThread.start();
+        DataStorage dataStorage = new DataStorage();
 
         ScraperService scraperService = new ScraperService(driverProvider,
-                recordNavigator, recordExtractor, dataStorage);
-        ScraperController scraperController = new ScraperController(scraperService);
+                recordNavigator, recordExtractor);
+        ScraperController scraperController = new ScraperController(scraperService, dataStorage);
 
-        scraperController.startScraping(RESOURCE_URL, 10);
-
-        dataStorage.finish();
-        try {
-            dataStorageThread.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        scraperController.startScraping(RESOURCE_URL, 10, "output.csv");
 
         browserDriver.close();
     }

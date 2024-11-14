@@ -7,9 +7,13 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
+
 public class RecordNavigator {
+    public static final String OVERLAY = "overlay";
     private static final String SEARCH_BUTTON = "button-Search";
     private static final String CONTACTS_BUTTON = "button-TabButton-Contacts";
+    private static final String NEXT_PAGE_BUTTON = "link-NextPage";
 
     public void clickSearchButton(WebDriverWait wait) {
         try {
@@ -28,6 +32,7 @@ public class RecordNavigator {
 
     public void clickContactsButton(WebDriverWait wait) {
         try {
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY)));
             WebElement contactsButton = wait.until(
                     ExpectedConditions.elementToBeClickable(By.id(CONTACTS_BUTTON)));
             if (contactsButton.isDisplayed() && contactsButton.isEnabled()) {
@@ -41,11 +46,14 @@ public class RecordNavigator {
         }
     }
 
-    public boolean navigateToNextPage(WebDriverWait wait, int pageCount) {
+    public boolean navigateToNextPage(WebDriver driver, WebDriverWait wait, int pageCount) {
         try {
+            wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             WebElement nextPageLink = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.cssSelector(".link-NextPage")));
-            nextPageLink.click();
+                    ExpectedConditions.visibilityOfElementLocated(By.id(NEXT_PAGE_BUTTON)));
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].scrollIntoView(true);", nextPageLink);
+            wait.until(ExpectedConditions.elementToBeClickable(nextPageLink)).click();
             wait.until(ExpectedConditions.stalenessOf(nextPageLink));
             System.out.println("Navigated to page " + (pageCount + 2));
             return true;

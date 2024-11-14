@@ -1,6 +1,7 @@
 package scraper.app.service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
@@ -8,7 +9,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import scraper.app.storage.DataStorage;
 
 @RequiredArgsConstructor
 public class ScraperService {
@@ -19,10 +19,10 @@ public class ScraperService {
     private final WebDriverProvider webDriverProvider;
     private final RecordNavigator recordNavigator;
     private final DataExtractor dataExtractor;
-    private final DataStorage dataStorage;
 
-    public void scrape(String url, int pages) {
+    public List<String> scrape(String url, int pages) {
         WebDriver driver = webDriverProvider.setupWebDriver();
+        List<String> processedPermits = new ArrayList<>();
 
         try {
             driver.get(url);
@@ -41,16 +41,22 @@ public class ScraperService {
                     try {
                         WebElement link = record.findElement(By.xpath(PERMIT_DETAILS_LINK));
                         String result = dataExtractor.extractRecordData(record, driver, link);
-                        dataStorage.addData(result);
+                        if (!processedPermits.contains(result)) {
+                            processedPermits.add(result);
+                        }
                     } catch (Exception e) {
                         System.out.println("Error extracting record details: " + e.getMessage());
                     }
                 }
-                hasNextPage = recordNavigator.navigateToNextPage(wait, pageCount);
                 pageCount++;
+                hasNextPage = recordNavigator.navigateToNextPage(driver, wait, pageCount);
+                if (hasNextPage) {
+                    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY)));
+                }
             }
         } finally {
             driver.quit();
         }
+        return processedPermits;
     }
 }
