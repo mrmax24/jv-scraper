@@ -23,8 +23,11 @@ public class Main {
                 recordNavigator, recordExtractor);
         ScraperController scraperController = new ScraperController(scraperService, dataStorage);
 
-        scraperController.startScraping(RESOURCE_URL, 10, "output.csv");
-
+        long start = System.currentTimeMillis();
+        scraperController.startScraping(RESOURCE_URL, 5, "output.csv");
+        long end = System.currentTimeMillis();
+        long time = (end - start) / 1000;
         browserDriver.close();
+        System.out.println("Total scrapping time: " + time);
     }
 }

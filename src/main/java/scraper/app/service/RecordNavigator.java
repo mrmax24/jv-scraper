@@ -29,8 +29,9 @@ public class RecordNavigator {
         }
     }
 
-    public void clickContactsButton(WebDriverWait wait) {
+    public void clickContactsButton(WebDriver driver) {
         try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY)));
             WebElement contactsButton = wait.until(
                     ExpectedConditions.elementToBeClickable(By.id(CONTACTS_BUTTON)));

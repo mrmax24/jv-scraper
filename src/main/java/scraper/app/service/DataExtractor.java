@@ -17,7 +17,7 @@ public class DataExtractor {
     private static final String RAW = "tr";
     private static final String COLUMN = "td";
     private static final String HEADER = "th";
-    private static final Duration TIMEOUT = Duration.ofSeconds(20);
+    private static final Duration TIMEOUT = Duration.ofSeconds(30);
     private static final String PERMIT_NUMBER = ".//div[@name='label-CaseNumber']//span";
     private static final String PERMIT_TYPE = ".//div[@name='label-CaseType']//span";
     private static final String PROJECT_NAME = ".//div[@name='label-Project']//span";
@@ -35,47 +35,50 @@ public class DataExtractor {
 
     public String extractRecordData(WebElement record, WebDriver driver, WebElement link) {
         StringBuilder result = new StringBuilder();
-        result.append("Permit number: ").append(record.findElement(By.xpath(PERMIT_NUMBER))
-                        .getText()).append(NEW_LINE);
-        result.append("Type: ").append(record.findElement(By.xpath(PERMIT_TYPE))
-                        .getText()).append(NEW_LINE);
-        result.append("Project name: ").append(record.findElement(By.xpath(PROJECT_NAME))
-                        .getText()).append(NEW_LINE);
-        result.append("Status: ").append(record.findElement(By.xpath(STATUS))
-                        .getText()).append(NEW_LINE);
-        result.append("Main parcel: ").append(record.findElement(By.xpath(MAIN_PARCEL))
-                        .getText()).append(NEW_LINE);
-        result.append("Address: ").append(record.findElement(By.xpath(ADDRESS))
-                        .getText()).append(NEW_LINE);
-        result.append("Description: ").append(record.findElement(By.xpath(DESCRIPTION))
-                        .getText()).append(NEW_LINE);
-        result.append("Applied Date: ").append(record.findElement(By.xpath(APPLIED_DATE))
-                        .getText()).append(NEW_LINE);
-        result.append("Issued Date: ").append(record.findElement(By.xpath(ISSUED_DATE))
-                        .getText()).append(NEW_LINE);
-        result.append("Expiration Date: ").append(record.findElement(By.xpath(EXPIRATION_DATE))
-                        .getText()).append(NEW_LINE);
-        result.append("Finalized Date: ").append(record.findElement(By.xpath(FINALIZED_DATE))
-                        .getText()).append(NEW_LINE);
+        try {
+            result.append("Permit number: ").append(record.findElement(By.xpath(PERMIT_NUMBER))
+                    .getText()).append(NEW_LINE);
+            result.append("Type: ").append(record.findElement(By.xpath(PERMIT_TYPE))
+                    .getText()).append(NEW_LINE);
+            result.append("Project name: ").append(record.findElement(By.xpath(PROJECT_NAME))
+                    .getText()).append(NEW_LINE);
+            result.append("Status: ").append(record.findElement(By.xpath(STATUS))
+                    .getText()).append(NEW_LINE);
+            result.append("Main parcel: ").append(record.findElement(By.xpath(MAIN_PARCEL))
+                    .getText()).append(NEW_LINE);
+            result.append("Address: ").append(record.findElement(By.xpath(ADDRESS))
+                    .getText()).append(NEW_LINE);
+            result.append("Description: ").append(record.findElement(By.xpath(DESCRIPTION))
+                    .getText()).append(NEW_LINE);
+            result.append("Applied Date: ").append(record.findElement(By.xpath(APPLIED_DATE))
+                    .getText()).append(NEW_LINE);
+            result.append("Issued Date: ").append(record.findElement(By.xpath(ISSUED_DATE))
+                    .getText()).append(NEW_LINE);
+            result.append("Expiration Date: ").append(record.findElement(By.xpath(EXPIRATION_DATE))
+                    .getText()).append(NEW_LINE);
+            result.append("Finalized Date: ").append(record.findElement(By.xpath(FINALIZED_DATE))
+                    .getText()).append(NEW_LINE);
 
-        recordNavigator.findAndOpenLinkFromRecord(driver, link);
+            // Переходимо за посиланням і обробляємо вкладку
+            recordNavigator.findAndOpenLinkFromRecord(driver, link);
 
-        WebElement district = new WebDriverWait(driver, TIMEOUT)
-                .until(ExpectedConditions.visibilityOfElementLocated(By.id(DISTRICT)))
-                .findElement(By.xpath(PARAGRAPH));
-        result.append("District: ").append(district.getText()).append(NEW_LINE);
+            WebElement district = new WebDriverWait(driver, TIMEOUT)
+                    .until(ExpectedConditions.presenceOfElementLocated(By.id(DISTRICT)))
+                    .findElement(By.xpath(PARAGRAPH));
+            result.append("District: ").append(district.getText()).append(NEW_LINE);
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
-        recordNavigator.clickContactsButton(wait);
-        List<String> additionalData = extractContactData(driver);
-        for (String element : additionalData) {
-            result.append(element);
+            recordNavigator.clickContactsButton(driver);
+
+            List<String> additionalData = extractContactData(driver);
+            for (String element : additionalData) {
+                result.append(element);
+            }
+        } catch (Exception e) {
+            System.out.println("Error extracting record data: " + e.getMessage());
         }
-        driver.close();
-        driver.switchTo().window(driver.getWindowHandles().iterator().next());
-
         return result.toString();
     }
+
 
     private List<String> extractContactData(WebDriver driver) {
         List<String> result = new ArrayList<>();
