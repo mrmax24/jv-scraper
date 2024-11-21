@@ -3,6 +3,7 @@ package scraper.app.service;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -17,7 +18,6 @@ public class DataExtractor {
     private static final String RAW = "tr";
     private static final String COLUMN = "td";
     private static final String HEADER = "th";
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
     private static final String PERMIT_NUMBER = ".//div[@name='label-CaseNumber']//span";
     private static final String PERMIT_TYPE = ".//div[@name='label-CaseType']//span";
     private static final String PROJECT_NAME = ".//div[@name='label-Project']//span";
@@ -31,82 +31,77 @@ public class DataExtractor {
     private static final String FINALIZED_DATE = ".//div[@name='label-FinalizedDate']//span";
     private static final String DISTRICT = "label-PermitDetail-District";
     private static final String CONTACTS_TABLE = "selfServiceTable-Contacts";
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private final RecordNavigator recordNavigator;
 
     public String extractRecordData(WebElement record, WebDriver driver, WebElement link) {
         StringBuilder result = new StringBuilder();
         try {
-            result.append("Permit number: ").append(record.findElement(By.xpath(PERMIT_NUMBER))
-                    .getText()).append(NEW_LINE);
-            result.append("Type: ").append(record.findElement(By.xpath(PERMIT_TYPE))
-                    .getText()).append(NEW_LINE);
-            result.append("Project name: ").append(record.findElement(By.xpath(PROJECT_NAME))
-                    .getText()).append(NEW_LINE);
-            result.append("Status: ").append(record.findElement(By.xpath(STATUS))
-                    .getText()).append(NEW_LINE);
-            result.append("Main parcel: ").append(record.findElement(By.xpath(MAIN_PARCEL))
-                    .getText()).append(NEW_LINE);
-            result.append("Address: ").append(record.findElement(By.xpath(ADDRESS))
-                    .getText()).append(NEW_LINE);
-            result.append("Description: ").append(record.findElement(By.xpath(DESCRIPTION))
-                    .getText()).append(NEW_LINE);
-            result.append("Applied Date: ").append(record.findElement(By.xpath(APPLIED_DATE))
-                    .getText()).append(NEW_LINE);
-            result.append("Issued Date: ").append(record.findElement(By.xpath(ISSUED_DATE))
-                    .getText()).append(NEW_LINE);
-            result.append("Expiration Date: ").append(record.findElement(By.xpath(EXPIRATION_DATE))
-                    .getText()).append(NEW_LINE);
-            result.append("Finalized Date: ").append(record.findElement(By.xpath(FINALIZED_DATE))
-                    .getText()).append(NEW_LINE);
+            appendRecordData(result, "Permit number", record, PERMIT_NUMBER);
+            appendRecordData(result, "Type", record, PERMIT_TYPE);
+            appendRecordData(result, "Project name", record, PROJECT_NAME);
+            appendRecordData(result, "Status", record, STATUS);
+            appendRecordData(result, "Main parcel", record, MAIN_PARCEL);
+            appendRecordData(result, "Address", record, ADDRESS);
+            appendRecordData(result, "Description", record, DESCRIPTION);
+            appendRecordData(result, "Applied Date", record, APPLIED_DATE);
+            appendRecordData(result, "Issued Date", record, ISSUED_DATE);
+            appendRecordData(result, "Expiration Date", record, EXPIRATION_DATE);
+            appendRecordData(result, "Finalized Date", record, FINALIZED_DATE);
 
-            // Переходимо за посиланням і обробляємо вкладку
             recordNavigator.findAndOpenLinkFromRecord(driver, link);
 
-            WebElement district = new WebDriverWait(driver, TIMEOUT)
-                    .until(ExpectedConditions.presenceOfElementLocated(By.id(DISTRICT)))
-                    .findElement(By.xpath(PARAGRAPH));
+            WebElement district = extractDistrict(driver);
             result.append("District: ").append(district.getText()).append(NEW_LINE);
 
-            recordNavigator.clickContactsButton(driver);
+            recordNavigator.clickContactsButton((driver));
 
             List<String> additionalData = extractContactData(driver);
-            for (String element : additionalData) {
-                result.append(element);
-            }
+            additionalData.forEach(result::append);
         } catch (Exception e) {
             System.out.println("Error extracting record data: " + e.getMessage());
         }
         return result.toString();
     }
 
+    private void appendRecordData(
+            StringBuilder result, String label, WebElement record, String xpath) {
+        try {
+            String value = record.findElement(By.xpath(xpath)).getText();
+            result.append(label).append(": ").append(value).append(NEW_LINE);
+            if (label.isEmpty()) {
+                result.append(label).append(": empty field").append(NEW_LINE);
+            }
+        } catch (NoSuchElementException e) {
+            result.append(label).append(": N/A").append(NEW_LINE);
+        }
+    }
+
+    private WebElement extractDistrict(WebDriver driver) {
+        return new WebDriverWait(driver, TIMEOUT)
+                .until(ExpectedConditions.presenceOfElementLocated(By.id(DISTRICT)))
+                .findElement(By.xpath(PARAGRAPH));
+    }
 
     private List<String> extractContactData(WebDriver driver) {
         List<String> result = new ArrayList<>();
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        try {
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.id(CONTACTS_TABLE)));
 
-            WebElement table = driver.findElement(By.id(CONTACTS_TABLE));
+        try {
+            WebElement table = wait.until(ExpectedConditions
+                    .presenceOfElementLocated(By.id(CONTACTS_TABLE)));
 
             List<WebElement> rows = table.findElements(By.tagName(RAW));
-
-            List<String> columnHeaders = new ArrayList<>();
-
-            List<WebElement> headers = rows.get(0).findElements(By.tagName(HEADER));
-            for (WebElement header : headers) {
-                columnHeaders.add(header.getText());
+            if (rows.isEmpty()) {
+                throw new RuntimeException("No rows found in the contacts table.");
             }
+
+            List<String> columnHeaders = extractColumnHeaders(rows.get(0));
 
             for (int i = 1; i < rows.size(); i++) {
                 List<WebElement> columns = rows.get(i).findElements(By.tagName(COLUMN));
-
                 if (!columns.isEmpty()) {
-                    for (int j = 0; j < columns.size(); j++) {
-                        String columnText = columns.get(j).getText();
-                        String header = columnHeaders.size() > j ? columnHeaders.get(j)
-                                : "Column " + (j + 1);
-                        result.add(header + ": " + columnText + NEW_LINE);
-                    }
+                    result.addAll(extractRowData(columns, columnHeaders));
                 }
             }
         } catch (Exception e) {
@@ -114,5 +109,26 @@ public class DataExtractor {
                     + "Exception: " + e.getMessage());
         }
         return result;
+    }
+
+    private List<String> extractColumnHeaders(WebElement headerRow) {
+        List<String> columnHeaders = new ArrayList<>();
+        List<WebElement> headers = headerRow.findElements(By.tagName(HEADER));
+
+        for (WebElement header : headers) {
+            columnHeaders.add(header.getText());
+        }
+        return columnHeaders;
+    }
+
+    private List<String> extractRowData(List<WebElement> columns, List<String> columnHeaders) {
+        List<String> rowData = new ArrayList<>();
+
+        for (int j = 0; j < columns.size(); j++) {
+            String columnText = columns.get(j).getText();
+            String header = columnHeaders.size() > j ? columnHeaders.get(j) : "Column " + (j + 1);
+            rowData.add(header + ": " + columnText + NEW_LINE);
+        }
+        return rowData;
     }
 }

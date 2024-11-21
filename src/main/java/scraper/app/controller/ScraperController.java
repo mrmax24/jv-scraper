@@ -10,8 +10,9 @@ public class ScraperController {
     private final ScraperService scraperService;
     private final DataStorage dataStorage;
 
-    public void startScraping(String url, int pages, String filePath) {
-        List<String> data = scraperService.scrape(url, pages);
+    public void startScraping(String url, int pages, String filePath, String fromDate,
+                              String toDate) {
+        List<String> data = scraperService.scrape(url, pages, fromDate, toDate);
         dataStorage.saveToCsv(data, filePath);
     }
 }

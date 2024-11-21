@@ -6,18 +6,25 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class RecordNavigator {
-    public static final String OVERLAY = "overlay";
-    private static final String SEARCH_BUTTON = "button-Search";
-    private static final String CONTACTS_BUTTON = "button-TabButton-Contacts";
-    private static final String NEXT_PAGE_BUTTON = "link-NextPage";
+    public static final String OVERLAY_ID = "overlay";
+    private static final String SEARCH_BUTTON_ID = "button-Search";
+    private static final String CONTACTS_BUTTON_ID = "button-TabButton-Contacts";
+    private static final String ADVANCED_BUTTON_ID = "button-Advanced";
+    private static final String SEARCH_SELECTOR_ID = "SearchModule";
+    private static final String PERMIT_OPTION_ID = "Permit";
+    private static final String FROM_DATE_FIELD_ID = "IssueDateFrom";
+    private static final String TO_DATE_FIELD_ID = "IssueDateTo";
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
-    public void clickSearchButton(WebDriverWait wait) {
+    public void clickSearchButton(WebDriver driver) {
         try {
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
             WebElement searchButton = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.id(SEARCH_BUTTON)));
+                    ExpectedConditions.elementToBeClickable(By.id(SEARCH_BUTTON_ID)));
             if (searchButton.isDisplayed() && searchButton.isEnabled()) {
                 searchButton.click();
             } else {
@@ -31,10 +38,10 @@ public class RecordNavigator {
 
     public void clickContactsButton(WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY)));
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY_ID)));
             WebElement contactsButton = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.id(CONTACTS_BUTTON)));
+                    ExpectedConditions.elementToBeClickable(By.id(CONTACTS_BUTTON_ID)));
             if (contactsButton.isDisplayed() && contactsButton.isEnabled()) {
                 contactsButton.click();
             } else {
@@ -46,29 +53,49 @@ public class RecordNavigator {
         }
     }
 
-    public boolean navigateToNextPage(WebDriver driver, WebDriverWait wait, int pageCount) {
-        try {
-            wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-            WebElement nextPageLink = wait.until(
-                    ExpectedConditions.visibilityOfElementLocated(By.id(NEXT_PAGE_BUTTON)));
-            ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].scrollIntoView(true);", nextPageLink);
-            wait.until(ExpectedConditions.elementToBeClickable(nextPageLink)).click();
-            wait.until(ExpectedConditions.stalenessOf(nextPageLink));
-            System.out.println("Navigated to page " + (pageCount + 2));
-            return true;
-        } catch (Exception e) {
-            System.out.println("Next page not found or error occurred: " + e.getMessage());
-            return false;
-        }
-    }
-
     public void findAndOpenLinkFromRecord(WebDriver driver, WebElement link) {
         link.getAttribute("href");
         ((JavascriptExecutor) driver).executeScript(
                 "window.open(arguments[0], '_blank');", link);
         for (String windowHandle : driver.getWindowHandles()) {
             driver.switchTo().window(windowHandle);
+        }
+    }
+
+    private void clickPermitOption(WebDriver driver) {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebElement dropdownElement = wait.until(ExpectedConditions
+                    .presenceOfElementLocated(By.id(SEARCH_SELECTOR_ID)));
+            Select dropdown = new Select(dropdownElement);
+            dropdown.selectByVisibleText(PERMIT_OPTION_ID);
+            dropdownElement.click();
+        } catch (Exception e) {
+            System.out.println("Error selecting 'Permit' option: " + e.getMessage());
+        }
+    }
+
+    public void applyFiltration(WebDriver driver, String fromDate, String toDate) {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+
+            clickPermitOption(driver);
+
+            wait.until(ExpectedConditions.elementToBeClickable(By.id(ADVANCED_BUTTON_ID))).click();
+
+            WebElement fromDateInput = wait.until(ExpectedConditions
+                    .presenceOfElementLocated(By.id(FROM_DATE_FIELD_ID)));
+            WebElement toDateInput = driver.findElement(By.id(TO_DATE_FIELD_ID));
+
+            fromDateInput.clear();
+            fromDateInput.sendKeys(fromDate);
+            toDateInput.clear();
+            toDateInput.sendKeys(toDate);
+
+            System.out.println("Date filtration applied: " + fromDate + " to " + toDate);
+
+        } catch (Exception e) {
+            System.out.println("Error applying filtration: " + e.getMessage());
         }
     }
 }
