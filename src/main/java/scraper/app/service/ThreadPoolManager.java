@@ -23,6 +23,12 @@ public class ThreadPoolManager {
         }
     }
 
+    public void submitRunnables(List<Runnable> tasks) {
+        for (Runnable task : tasks) {
+            executorService.submit(task);
+        }
+    }
+
     public void shutdown() {
         executorService.shutdown();
         try {
