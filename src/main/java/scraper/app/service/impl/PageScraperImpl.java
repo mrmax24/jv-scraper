@@ -1,4 +1,4 @@
-package scraper.app.service;
+package scraper.app.service.impl;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -10,6 +10,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.config.WebDriverProvider;
+import scraper.app.service.DataExtractor;
+import scraper.app.service.PageScraper;
+import scraper.app.service.RecordNavigator;
 
 @RequiredArgsConstructor
 public class PageScraperImpl implements PageScraper {

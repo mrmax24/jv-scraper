@@ -6,7 +6,7 @@ import scraper.app.config.WebDriverProvider;
 import scraper.app.controller.ScraperController;
 import scraper.app.model.Components;
 import scraper.app.service.DataExtractor;
-import scraper.app.service.PageScraperImpl;
+import scraper.app.service.impl.PageScraperImpl;
 import scraper.app.service.RecordNavigator;
 import scraper.app.service.ScraperService;
 import scraper.app.service.ThreadPoolManager;
