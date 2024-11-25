@@ -6,10 +6,13 @@ import scraper.app.config.WebDriverProvider;
 import scraper.app.controller.ScraperController;
 import scraper.app.model.Components;
 import scraper.app.service.DataExtractor;
-import scraper.app.service.impl.PageScraperImpl;
-import scraper.app.service.RecordNavigator;
+import scraper.app.service.FirstPageRecordNavigator;
+import scraper.app.service.PageScraper;
 import scraper.app.service.ScraperService;
+import scraper.app.service.SecondPageRecordNavigator;
 import scraper.app.service.ThreadPoolManager;
+import scraper.app.service.impl.DataExtractorImpl;
+import scraper.app.service.impl.PageScraperImpl;
 import scraper.app.service.impl.ScraperServiceImpl;
 import scraper.app.storage.DataStorage;
 
@@ -20,8 +23,8 @@ public class Main {
     public static final String FROM_DATE = "09/01/2024";
     public static final String TO_DATE = "09/30/2024";
     public static final String ISSUED_DATE = "Last 30 Days";
-    public static final String FIRST_FILE_PATH = "output1.csv";
-    public static final String SECOND_FILE_PATH = "output2.csv";
+    public static final String FIRST_FILE_PATH = "first-output.csv";
+    public static final String SECOND_FILE_PATH = "second-output.csv";
     public static final String FIRST_RESOURCE_URL
             = "https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search";
     private static final String SECOND_RESOURCE_URL
@@ -61,14 +64,15 @@ public class Main {
     }
 
     private static ScraperController getScraperController(WebDriverProvider driverProvider) {
-        RecordNavigator recordNavigator = new RecordNavigator();
-        DataExtractor dataExtractor = new DataExtractor(recordNavigator);
+        FirstPageRecordNavigator firstNavigator = new FirstPageRecordNavigator();
+        SecondPageRecordNavigator secondNavigator = new SecondPageRecordNavigator();
+        DataExtractor dataExtractor = new DataExtractorImpl(firstNavigator);
         DataStorage dataStorage = new DataStorage();
-        PageScraperImpl pageScraperImpl =
-                new PageScraperImpl(driverProvider, recordNavigator, dataExtractor);
+        PageScraper pageScraper =
+                new PageScraperImpl(driverProvider, firstNavigator, secondNavigator, dataExtractor);
 
         ThreadPoolManager threadPoolManager = new ThreadPoolManager(POOL_SIZE);
-        ScraperService scraperService = new ScraperServiceImpl(pageScraperImpl);
+        ScraperService scraperService = new ScraperServiceImpl(pageScraper);
         return new ScraperController(scraperService, dataStorage, threadPoolManager);
     }
 }

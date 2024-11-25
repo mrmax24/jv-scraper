@@ -11,8 +11,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.config.WebDriverProvider;
 import scraper.app.service.DataExtractor;
+import scraper.app.service.FirstPageRecordNavigator;
 import scraper.app.service.PageScraper;
-import scraper.app.service.RecordNavigator;
+import scraper.app.service.SecondPageRecordNavigator;
 
 @RequiredArgsConstructor
 public class PageScraperImpl implements PageScraper {
@@ -23,7 +24,8 @@ public class PageScraperImpl implements PageScraper {
     private static final int ATTEMPTS_NUMBER = 3;
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private final WebDriverProvider webDriverProvider;
-    private final RecordNavigator recordNavigator;
+    private final FirstPageRecordNavigator firstPageRecordNavigator;
+    private final SecondPageRecordNavigator secondPageRecordNavigator;
     private final DataExtractor dataExtractor;
 
     @Override
@@ -54,11 +56,26 @@ public class PageScraperImpl implements PageScraper {
 
     @Override
     public List<String> scrapeSecondPage(String url, int pageNumber, String issueDate) {
-        return new ArrayList<>();
-    }
-
-    public List<String> scrapePageWithIssuedDate(String url, int pageNumber, String issueDate) {
-        return new ArrayList<String>();
+        List<String> processedPermits = new ArrayList<>();
+        int attempts = ATTEMPTS_NUMBER;
+        while (attempts > 0) {
+            WebDriver driver = null;
+            try {
+                driver = setupDriver(url, pageNumber);
+                applyFilters(driver, issueDate);
+                List<WebElement> records = fetchRecords(driver, pageNumber);
+                processRecords(driver, records, processedPermits, pageNumber);
+                break;
+            } catch (Exception e) {
+                System.out.println("Error scraping page " + pageNumber + ": " + e.getMessage());
+                attempts--;
+            } finally {
+                if (driver != null) {
+                    driver.quit();
+                }
+            }
+        }
+        return processedPermits;
     }
 
     private WebDriver setupDriver(String url, int pageNumber) {
@@ -72,8 +89,13 @@ public class PageScraperImpl implements PageScraper {
     }
 
     private void applyFilters(WebDriver driver, String fromDate, String toDate) {
-        recordNavigator.applyFiltration(driver, fromDate, toDate);
-        recordNavigator.clickSearchButton(driver);
+        firstPageRecordNavigator.applyFiltration(driver, fromDate, toDate);
+        firstPageRecordNavigator.clickSearchButton(driver);
+    }
+
+    private void applyFilters(WebDriver driver, String issuedDate) {
+        secondPageRecordNavigator.applyFiltration(driver, issuedDate);
+        secondPageRecordNavigator.clickSearchButton(driver);
     }
 
     private List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
@@ -95,7 +117,7 @@ public class PageScraperImpl implements PageScraper {
             try {
                 WebElement link = getPermitLink(record);
                 if (link != null) {
-                    String result = dataExtractor.extractRecordData(record, driver, link);
+                    String result = dataExtractor.extractRecordsForFirstPage(record, driver, link);
                     processedPermits.add(result);
                 } else {
                     System.out.println("Permit link not found in record on page " + pageNumber);

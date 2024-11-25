@@ -9,7 +9,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class RecordNavigator {
+public class FirstPageRecordNavigator {
     public static final String OVERLAY_ID = "overlay";
     private static final String SEARCH_BUTTON_ID = "button-Search";
     private static final String CONTACTS_BUTTON_ID = "button-TabButton-Contacts";
