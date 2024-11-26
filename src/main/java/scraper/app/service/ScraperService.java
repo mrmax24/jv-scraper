@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import scraper.app.config.ThreadPoolManager;
+import scraper.app.storage.DataStorage;
 
 public interface ScraperService {
 
@@ -29,7 +31,7 @@ public interface ScraperService {
         List<Callable<Void>> tasks = taskSupplier.getTasks(allProcessedPermits);
         threadPoolManager.submitTasks(tasks);
         threadPoolManager.shutdown();
-        System.out.println("Total records found: " + allProcessedPermits.size());
+        new DataStorage().saveLogToCsv("Total records found: " + allProcessedPermits.size());
         return new ArrayList<>(allProcessedPermits);
     }
 

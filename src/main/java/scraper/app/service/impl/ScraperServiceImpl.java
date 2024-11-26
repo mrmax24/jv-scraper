@@ -5,9 +5,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import lombok.RequiredArgsConstructor;
+import scraper.app.config.ThreadPoolManager;
 import scraper.app.service.PageScraper;
 import scraper.app.service.ScraperService;
-import scraper.app.service.ThreadPoolManager;
+import scraper.app.storage.DataStorage;
 
 @RequiredArgsConstructor
 public class ScraperServiceImpl implements ScraperService {
@@ -39,8 +40,8 @@ public class ScraperServiceImpl implements ScraperService {
             tasks.add(() -> {
                 List<String> result = pageScraper
                         .scrapeFirstPage(url, pageNumber, fromDate, toDate);
-                System.out.println("Finished scrape for page (with dates): " + pageNumber
-                        + ", found: " + result.size() + " records");
+                new DataStorage().saveLogToCsv("Finished scrape for page with dates: "
+                        + pageNumber + ", found: " + result.size() + " records");
                 allProcessedPermits.addAll(result);
                 return null;
             });
@@ -59,7 +60,7 @@ public class ScraperServiceImpl implements ScraperService {
             tasks.add(() -> {
                 List<String> result = pageScraper
                         .scrapeSecondPage(url, pageNumber, issuedDate);
-                System.out.println("Finished scrape for page (without dates): "
+                new DataStorage().saveLogToCsv("Finished scrape for page with issued date: "
                         + pageNumber + ", found: " + result.size() + " records");
                 allProcessedPermits.addAll(result);
                 return null;

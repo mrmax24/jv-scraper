@@ -2,8 +2,8 @@ package scraper.app.controller;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import scraper.app.config.ThreadPoolManager;
 import scraper.app.service.ScraperService;
-import scraper.app.service.ThreadPoolManager;
 import scraper.app.storage.DataStorage;
 
 @RequiredArgsConstructor

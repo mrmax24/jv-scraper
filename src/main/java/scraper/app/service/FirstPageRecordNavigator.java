@@ -8,6 +8,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import scraper.app.storage.DataStorage;
 
 public class FirstPageRecordNavigator {
     public static final String OVERLAY_ID = "overlay";
@@ -92,7 +93,8 @@ public class FirstPageRecordNavigator {
             toDateInput.clear();
             toDateInput.sendKeys(toDate);
 
-            System.out.println("Date filtration applied: " + fromDate + " to " + toDate);
+            new DataStorage().saveLogToCsv("Date filtration applied by date : "
+                    + fromDate + " to " + toDate);
 
         } catch (Exception e) {
             System.out.println("Error applying filtration: " + e.getMessage());

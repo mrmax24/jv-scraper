@@ -2,33 +2,25 @@ package scraper.app.service;
 
 import java.time.Duration;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import scraper.app.storage.DataStorage;
 
 public class SecondPageRecordNavigator {
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private static final String SEARCH_BUTTON_ID = "Search";
     private static final String SEARCH_SELECTOR_ID = "Module";
-    private static final String PERMIT_OPTION_ID = "Permitting";
+    private static final String PERMIT_OPTION_ID = "Permits Only";
     private static final String ISSUED_DATE_FIELD_ID = "IssuedOn.Display";
 
     public void clickSearchButton(WebDriver driver) {
-        try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-            WebElement searchButton = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.id(SEARCH_BUTTON_ID)));
-            if (searchButton.isDisplayed() && searchButton.isEnabled()) {
-                searchButton.click();
-            } else {
-                System.out.println("Search button is not clickable or visible.");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Error finding or clicking 'Search' button: " + e.getMessage());
-        }
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        WebElement searchButton = driver.findElement(By.id(SEARCH_BUTTON_ID));
+        js.executeScript("arguments[0].click();", searchButton);
     }
 
     private void clickSearchOption(WebDriver driver) {
@@ -56,7 +48,8 @@ public class SecondPageRecordNavigator {
             issuedDateInput.clear();
             issuedDateInput.sendKeys(issueDate);
 
-            System.out.println("Date filtration applied: " + issueDate);
+            new DataStorage().saveLogToCsv("Date filtration by date: "
+                    + issueDate);
 
         } catch (Exception e) {
             System.out.println("Error applying filtration: " + e.getMessage());
