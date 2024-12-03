@@ -1,9 +1,9 @@
 package scraper.app.service;
 
+import scraper.app.model.FilterDate;
+
 import java.util.List;
 
 public interface PageScraper {
-    List<String> scrapeFirstPage(String url, int pageNumber, String fromDate, String toDate);
-
-    List<String> scrapeSecondPage(String url, int pageNumber, String issueDate);
+    List<String> scrapeResource(String url, int pageNumber, FilterDate filterDate);
 }

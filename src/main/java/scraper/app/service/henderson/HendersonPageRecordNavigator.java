@@ -1,4 +1,4 @@
-package scraper.app.service;
+package scraper.app.service.henderson;
 
 import java.time.Duration;
 import org.openqa.selenium.By;
@@ -8,9 +8,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import scraper.app.model.FilterDate;
+import scraper.app.service.RecordNavigator;
 import scraper.app.storage.DataStorage;
 
-public class FirstPageRecordNavigator {
+public class HendersonPageRecordNavigator implements RecordNavigator {
     public static final String OVERLAY_ID = "overlay";
     private static final String SEARCH_BUTTON_ID = "button-Search";
     private static final String CONTACTS_BUTTON_ID = "button-TabButton-Contacts";
@@ -21,6 +23,7 @@ public class FirstPageRecordNavigator {
     private static final String TO_DATE_FIELD_ID = "IssueDateTo";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
+    @Override
     public void clickSearchButton(WebDriver driver) {
         try {
             WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
@@ -34,6 +37,35 @@ public class FirstPageRecordNavigator {
         } catch (Exception e) {
             throw new RuntimeException(
                     "Error finding or clicking 'Search' button: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void applyFiltration(WebDriver driver, FilterDate filterDate) {
+        try {
+            String fromDate = filterDate.getFromDate();
+            String toDate = filterDate.getToDate();
+
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+
+            clickPermitOption(driver);
+
+            wait.until(ExpectedConditions.elementToBeClickable(By.id(ADVANCED_BUTTON_ID))).click();
+
+            WebElement fromDateInput = wait.until(ExpectedConditions
+                    .presenceOfElementLocated(By.id(FROM_DATE_FIELD_ID)));
+            WebElement toDateInput = driver.findElement(By.id(TO_DATE_FIELD_ID));
+
+            fromDateInput.clear();
+            fromDateInput.sendKeys(fromDate);
+            toDateInput.clear();
+            toDateInput.sendKeys(toDate);
+
+            new DataStorage().saveLogToCsv("Date filtration applied by date : "
+                    + fromDate + " to " + toDate);
+
+        } catch (Exception e) {
+            System.out.println("Error applying filtration: " + e.getMessage());
         }
     }
 
@@ -73,31 +105,6 @@ public class FirstPageRecordNavigator {
             dropdownElement.click();
         } catch (Exception e) {
             System.out.println("Error selecting 'Permit' option: " + e.getMessage());
-        }
-    }
-
-    public void applyFiltration(WebDriver driver, String fromDate, String toDate) {
-        try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-
-            clickPermitOption(driver);
-
-            wait.until(ExpectedConditions.elementToBeClickable(By.id(ADVANCED_BUTTON_ID))).click();
-
-            WebElement fromDateInput = wait.until(ExpectedConditions
-                    .presenceOfElementLocated(By.id(FROM_DATE_FIELD_ID)));
-            WebElement toDateInput = driver.findElement(By.id(TO_DATE_FIELD_ID));
-
-            fromDateInput.clear();
-            fromDateInput.sendKeys(fromDate);
-            toDateInput.clear();
-            toDateInput.sendKeys(toDate);
-
-            new DataStorage().saveLogToCsv("Date filtration applied by date : "
-                    + fromDate + " to " + toDate);
-
-        } catch (Exception e) {
-            System.out.println("Error applying filtration: " + e.getMessage());
         }
     }
 }

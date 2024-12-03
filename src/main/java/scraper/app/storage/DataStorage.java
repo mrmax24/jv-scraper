@@ -1,5 +1,6 @@
 package scraper.app.storage;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +24,18 @@ public class DataStorage {
         } catch (IOException e) {
             throw new RuntimeException(
                     "Couldn't write records to file: " + LOG_FILE_PATH, e);
+        }
+    }
+
+    public static void clearLogFile() {
+        File logFile = new File(LOG_FILE_PATH);
+        if (logFile.exists()) {
+            try (FileWriter writer = new FileWriter(logFile, false)) {
+            } catch (IOException e) {
+                throw new RuntimeException("Couldn't clear the file: " + LOG_FILE_PATH, e);
+            }
+        } else {
+            throw new RuntimeException("Log file does not exist: " + LOG_FILE_PATH);
         }
     }
 }

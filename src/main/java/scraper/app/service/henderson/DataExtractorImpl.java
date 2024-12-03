@@ -1,4 +1,4 @@
-package scraper.app.service.impl;
+package scraper.app.service.henderson;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.service.DataExtractor;
-import scraper.app.service.FirstPageRecordNavigator;
 
 @RequiredArgsConstructor
 public class DataExtractorImpl implements DataExtractor {
@@ -36,31 +36,30 @@ public class DataExtractorImpl implements DataExtractor {
     private static final String DISTRICT = "label-PermitDetail-District";
     private static final String CONTACTS_TABLE = "selfServiceTable-Contacts";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
+    private final HendersonPageRecordNavigator hendersonPageRecordNavigator;
 
-    private static final String TITLE = ".//div[@name='search-result-title']//span";
-    private final FirstPageRecordNavigator firstPageRecordNavigator;
-
-    public String extractRecordsForFirstPage(WebElement record, WebDriver driver, WebElement link) {
+    @Override
+    public String extractRecords(WebElement record, WebDriver driver, WebElement link) {
         StringBuilder result = new StringBuilder();
         try {
-            appendRecordData(result, "Permit number", record, PERMIT_NUMBER);
-            appendRecordData(result, "Type", record, PERMIT_TYPE);
-            appendRecordData(result, "Project name", record, PROJECT_NAME);
-            appendRecordData(result, "Status", record, STATUS);
-            appendRecordData(result, "Main parcel", record, MAIN_PARCEL);
-            appendRecordData(result, "Address", record, ADDRESS);
-            appendRecordData(result, "Description", record, DESCRIPTION);
-            appendRecordData(result, "Applied Date", record, APPLIED_DATE);
-            appendRecordData(result, "Issued Date", record, ISSUED_DATE);
-            appendRecordData(result, "Expiration Date", record, EXPIRATION_DATE);
-            appendRecordData(result, "Finalized Date", record, FINALIZED_DATE);
+            appendRecordData(result, "Permit number", record, PERMIT_NUMBER, driver);
+            appendRecordData(result, "Type", record, PERMIT_TYPE, driver);
+            appendRecordData(result, "Project name", record, PROJECT_NAME, driver);
+            appendRecordData(result, "Status", record, STATUS, driver);
+            appendRecordData(result, "Main parcel", record, MAIN_PARCEL, driver);
+            appendRecordData(result, "Address", record, ADDRESS, driver);
+            appendRecordData(result, "Description", record, DESCRIPTION, driver);
+            appendRecordData(result, "Applied Date", record, APPLIED_DATE, driver);
+            appendRecordData(result, "Issued Date", record, ISSUED_DATE, driver);
+            appendRecordData(result, "Expiration Date", record, EXPIRATION_DATE, driver);
+            appendRecordData(result, "Finalized Date", record, FINALIZED_DATE, driver);
 
-            firstPageRecordNavigator.findAndOpenLinkFromRecord(driver, link);
+            hendersonPageRecordNavigator.findAndOpenLinkFromRecord(driver, link);
 
             WebElement district = extractDistrict(driver);
             result.append("District: ").append(district.getText()).append(NEW_LINE);
 
-            firstPageRecordNavigator.clickContactsButton((driver));
+            hendersonPageRecordNavigator.clickContactsButton((driver));
 
             List<String> additionalData = extractContactData(driver);
             additionalData.forEach(result::append);
@@ -70,32 +69,16 @@ public class DataExtractorImpl implements DataExtractor {
         return result.toString();
     }
 
-    @Override
-    public String extractRecordsForSecondPage(
-            WebElement record, WebDriver driver, WebElement link) {
-        StringBuilder result = new StringBuilder();
-        appendRecordDataWithoutHeadings(result, record, TITLE);
-        return result.toString();
-    }
-
     private void appendRecordData(
-            StringBuilder result, String label, WebElement record, String xpath) {
+            StringBuilder result, String label, WebElement record, String xpath, WebDriver driver) {
         try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
             String value = record.findElement(By.xpath(xpath)).getText();
             result.append(label).append(": ").append(value.isEmpty()
                     ? EMPTY_MESSAGE : value).append(NEW_LINE);
         } catch (NoSuchElementException e) {
             result.append(label).append(": " + NO_DATA_MESSAGE).append(NEW_LINE);
-        }
-    }
-
-    private void appendRecordDataWithoutHeadings(
-            StringBuilder result, WebElement record, String xpath) {
-        try {
-            String value = record.findElement(By.xpath(xpath)).getText();
-            result.append(value.isEmpty() ? EMPTY_MESSAGE : value).append(NEW_LINE);
-        } catch (NoSuchElementException e) {
-            result.append(NO_DATA_MESSAGE).append(NEW_LINE);
         }
     }
 
