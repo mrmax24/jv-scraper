@@ -11,8 +11,7 @@ import scraper.app.util.ComponentsInitializer;
 import scraper.app.util.ScraperTimer;
 
 public class Main {
-    public static final int THREAD_POOL_SIZE = 2;
-    public static final int PAGES_AND_THREADS_AMOUNT = 2;
+    public static final int PAGES_NUMBER_AND_THREAD_POOL_SIZE = 1;
     public static final String FROM_DATE = "09/01/2024";
     public static final String TO_DATE = "09/30/2024";
     public static final String ISSUED_DATE = "Last 30 Days";
@@ -26,7 +25,7 @@ public class Main {
     public static void main(String[] args) {
         Components components = ComponentsInitializer.initializeComponents();
         DataStorage.clearLogFile();
-        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        ExecutorService executorService = Executors.newFixedThreadPool(PAGES_NUMBER_AND_THREAD_POOL_SIZE);
 
         long totalScrapingTime = ScraperTimer.measureExecutionTime(() -> {
             //Future<?> task1 = executorService.submit(() -> runFirstScrapingTask(components));
@@ -52,13 +51,13 @@ public class Main {
 
     private static void runFirstScrapingTask(Components components) {
         ScraperController controller = components.scraperController1();
-        controller.startScraping(HENDERSON_URL, PAGES_AND_THREADS_AMOUNT,
+        controller.startScraping(HENDERSON_URL, PAGES_NUMBER_AND_THREAD_POOL_SIZE,
                     FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
     }
 
     private static void runSecondScrapingTask(Components components) {
         ScraperController controller = components.scraperController2();
-        controller.startScraping(CALABASAS_URL, PAGES_AND_THREADS_AMOUNT,
+        controller.startScraping(CALABASAS_URL, PAGES_NUMBER_AND_THREAD_POOL_SIZE,
                 FILE_PATH_FOR_CALABASAS, ISSUED_DATE);
     }
 }

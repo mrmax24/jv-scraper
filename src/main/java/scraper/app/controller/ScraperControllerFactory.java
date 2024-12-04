@@ -23,20 +23,20 @@ public class ScraperControllerFactory {
 
         if (driverProvider instanceof HendersonDriverProvider) {
             DataExtractor dataExtractor = new scraper.app.service
-                    .calabasas.DataExtractorImpl(new CalabasasPageRecordNavigator());
+                    .henderson.DataExtractorImpl(new HendersonPageRecordNavigator());
             PageScraper pageScraper = new HendersonPageScraperImpl(new HendersonDriverProvider(),
                     new HendersonPageRecordNavigator(), dataExtractor);
             return new ScraperController(new HandersonScraperService(pageScraper),
                     new DataStorage(),
-                    new ThreadPoolManager(Main.THREAD_POOL_SIZE));
+                    new ThreadPoolManager(Main.PAGES_NUMBER_AND_THREAD_POOL_SIZE));
         } else {
             DataExtractor dataExtractor = new scraper.app.service
-                    .henderson.DataExtractorImpl(new HendersonPageRecordNavigator());
+                    .calabasas.DataExtractorImpl(new CalabasasPageRecordNavigator());
             PageScraper pageScraper = new CalabasasPageScraperImpl(new CalabasasDriverProvider(),
                     new CalabasasPageRecordNavigator(), dataExtractor);
             return new ScraperController(new CalabasasScraperService(pageScraper),
                     new DataStorage(),
-                    new ThreadPoolManager(Main.THREAD_POOL_SIZE));
+                    new ThreadPoolManager(Main.PAGES_NUMBER_AND_THREAD_POOL_SIZE));
         }
     }
 }

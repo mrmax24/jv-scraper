@@ -56,8 +56,8 @@ public class CalabasasPageScraperImpl implements PageScraper {
     private List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
         List<WebElement> records = wait.until(ExpectedConditions
-                .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG))
-        );
+                .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG)));
+
         if (records.isEmpty()) {
             throw new IllegalStateException("No records found on page " + pageNumber);
         }
@@ -67,44 +67,37 @@ public class CalabasasPageScraperImpl implements PageScraper {
     private void processRecords(WebDriver driver, List<WebElement> records,
                                 List<String> processedPermits, int pageNumber) {
         String originalWindow = driver.getWindowHandle();
-        System.out.println("Original window handle: " + originalWindow);
-        System.out.println("Number of records to process: " + records.size());
 
         try {
-            for (int i = 0; i < 1; i++) {
-                System.out.println("Processing record " + (i + 1) + " of " + records.size());
-                try {
-                    List<WebElement> updatedRecords = fetchRecords(driver, pageNumber);
-                    WebElement record = updatedRecords.get(i);
+            for (int i = 0; i < records.size(); i++) {
+                WebElement record = records.get(i);
 
+                try {
+                    // Знаходимо посилання на запис
                     WebElement link = getPermitLink(record, driver);
                     if (link != null) {
-                        System.out.println("Clicking on permit link for record " + (i + 1));
-                        link.click();
-                        System.out.println("Switching to new tab...");
-                        switchToNewTab(driver);
+                        System.out.println("Processing record " + (i + 1));
 
-                        System.out.println("Extracting data for record " + (i + 1));
+                        // Обробляємо запис через DataExtractor
                         String result = dataExtractor.extractRecords(record, driver, link);
                         processedPermits.add(result);
-                        System.out.println("Data extracted successfully for record " + (i + 1));
 
+                        // Закриваємо вкладки та повертаємось до початкового вікна
                         closeAdditionalTabs(driver, originalWindow);
-                        System.out.println("Returned to original tab for record " + (i + 1));
                     } else {
                         System.out.println("Permit link not found in record " + (i + 1));
                     }
                 } catch (Exception e) {
-                    System.err.println("Error extracting record on page " + pageNumber +
-                            ", record " + (i + 1) + ": " + e.getMessage());
+                    System.err.println("Error processing record " + (i + 1) + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         } finally {
-            System.out.println("Closing driver...");
-            driver.quit();
+            // Закриття вкладок у кінці всіх ітерацій
+            closeAdditionalTabs(driver, originalWindow);
         }
     }
+
 
     private void switchToNewTab(WebDriver driver) {
         String originalHandle = driver.getWindowHandle();
