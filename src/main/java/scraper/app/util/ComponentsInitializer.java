@@ -12,7 +12,7 @@ public class ComponentsInitializer {
         WebDriverProvider hendersonDriverProvider = new HendersonDriverProvider();
         WebDriverProvider calabasasDriverProvider = new CalabasasDriverProvider();
         ThreadPoolManager threadPoolManager
-                = new ThreadPoolManager(Main.PAGES_NUMBER_AND_THREAD_POOL_SIZE);
+                = new ThreadPoolManager(Main.THREAD_POOL_SIZE);
 
         ScraperController scraperControllerForHenderson = ScraperControllerFactory
                 .createScraperController(hendersonDriverProvider);

@@ -11,7 +11,8 @@ import scraper.app.util.ComponentsInitializer;
 import scraper.app.util.ScraperTimer;
 
 public class Main {
-    public static final int PAGES_NUMBER_AND_THREAD_POOL_SIZE = 1;
+    public static final int PAGE_NUMBER = 1;
+    public static final int THREAD_POOL_SIZE = 1;
     public static final String FROM_DATE = "09/01/2024";
     public static final String TO_DATE = "09/30/2024";
     public static final String ISSUED_DATE = "Last 30 Days";
@@ -20,18 +21,17 @@ public class Main {
     public static final String HENDERSON_URL
             = "https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search";
     public static final String CALABASAS_URL = "https://ci-calabasas-ca.smartgovcommunity.com/"
-            + "ApplicationPublic/ApplicationSearchAdvanced/Search";;
+            + "ApplicationPublic/ApplicationSearchAdvanced/Search";
 
     public static void main(String[] args) {
         Components components = ComponentsInitializer.initializeComponents();
         DataStorage.clearLogFile();
-        ExecutorService executorService = Executors.newFixedThreadPool(PAGES_NUMBER_AND_THREAD_POOL_SIZE);
+        ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         long totalScrapingTime = ScraperTimer.measureExecutionTime(() -> {
-            //Future<?> task1 = executorService.submit(() -> runFirstScrapingTask(components));
-            Future<?> task2 = executorService.submit(() -> runSecondScrapingTask(components));
+            //Future<?> task1 = executorService.submit(() -> runHendersonScrapingTask(components));
+            Future<?> task2 = executorService.submit(() -> runCalabasasScrapingTask(components));
 
-            //handleTaskCompletion(task1);
             handleTaskCompletion(task2);
         });
 
@@ -41,23 +41,23 @@ public class Main {
         components.browserDriver().close();
     }
 
+    private static void runHendersonScrapingTask(Components components) {
+        ScraperController controller = components.scraperController1();
+        controller.startScraping(HENDERSON_URL, PAGE_NUMBER,
+                FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
+    }
+
+    private static void runCalabasasScrapingTask(Components components) {
+        ScraperController controller = components.scraperController2();
+        controller.startScraping(CALABASAS_URL, PAGE_NUMBER,
+                FILE_PATH_FOR_CALABASAS, ISSUED_DATE);
+    }
+
     private static void handleTaskCompletion(Future<?> task) {
         try {
             task.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Error during task execution", e);
         }
-    }
-
-    private static void runFirstScrapingTask(Components components) {
-        ScraperController controller = components.scraperController1();
-        controller.startScraping(HENDERSON_URL, PAGES_NUMBER_AND_THREAD_POOL_SIZE,
-                    FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
-    }
-
-    private static void runSecondScrapingTask(Components components) {
-        ScraperController controller = components.scraperController2();
-        controller.startScraping(CALABASAS_URL, PAGES_NUMBER_AND_THREAD_POOL_SIZE,
-                FILE_PATH_FOR_CALABASAS, ISSUED_DATE);
     }
 }

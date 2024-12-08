@@ -1,8 +1,6 @@
 package scraper.app.service.calabasas;
 
 import java.time.Duration;
-import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -10,12 +8,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import scraper.app.Main;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 
 public class CalabasasPageRecordNavigator implements RecordNavigator {
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration TIMEOUT = Duration.ofSeconds(10);
     public static final String OVERLAY_ID = "overlay";
     private static final String SEARCH_BUTTON_ID = "Search";
     private static final String SEARCH_SELECTOR_ID = "Module";
@@ -31,31 +28,27 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
         try {
-            // Wait for the overlay to disappear
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY_ID)));
 
-            // Find the search button element
             WebElement searchButton = driver.findElement(By.id(SEARCH_BUTTON_ID));
 
-            // Wait for the element to be visible and not covered
             JavascriptExecutor js = (JavascriptExecutor) driver;
             Boolean isCovered = (Boolean) js.executeScript(
                     "var elem = arguments[0];" +
-                            "var rect = elem.getBoundingClientRect();" +
-                            "return (rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);" , searchButton);
+                            "var rect = elem.getBoundingClientRect();"
+                            + "return (rect.top >= 0 && rect.left >= 0 && "
+                            + "rect.bottom <= window.innerHeight && rect.right "
+                            + "<= window.innerWidth);", searchButton);
 
             if (!isCovered) {
                 System.out.println("Element is covered, waiting...");
                 wait.until(ExpectedConditions.elementToBeClickable(searchButton));
             }
 
-            // Scroll to the search button
             js.executeScript("arguments[0].scrollIntoView(true);", searchButton);
 
-            // Ensure that the button is clickable by explicitly waiting
             wait.until(ExpectedConditions.elementToBeClickable(searchButton));
 
-            // Use JavaScript to click the button if normal click fails due to overlay
             js.executeScript("arguments[0].click();", searchButton);
 
         } catch (Exception e) {
@@ -79,6 +72,9 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
                     "arguments[0].scrollIntoView(true);", field);
             wait.until(ExpectedConditions.elementToBeClickable(field)).click();
 
+            // Wait for any overlay or loader to disappear
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".overlay-class")));
+
             WebElement container = wait.until(ExpectedConditions
                     .elementToBeClickable(By.xpath(DATE_OPTION_TAG)));
 
@@ -86,7 +82,13 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
                     ".//span[text()='" + issuedDate + "']"));
             ((JavascriptExecutor) driver).executeScript(
                     "arguments[0].scrollIntoView(true);", dateOption);
-            wait.until(ExpectedConditions.elementToBeClickable(dateOption)).click();
+
+            // Force-click if standard click fails
+            try {
+                wait.until(ExpectedConditions.elementToBeClickable(dateOption)).click();
+            } catch (Exception e) {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", dateOption);
+            }
 
             clickSearchButton(driver);
 
@@ -94,6 +96,7 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
             throw new RuntimeException("Error applying filtration: " + e.getMessage());
         }
     }
+
 
     public void clickSearchOption(WebDriver driver) {
         try {
@@ -113,20 +116,16 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
 
     @Override
     public void findAndOpenLinkFromRecord(WebDriver driver, WebElement link) {
-        driver.get("https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/8b38b70f-e953-4ccc-8cc0-b21001602a0c?_conv=1");
-    }
-
-    public WebElement getPermitLink(WebElement record, WebDriver driver) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-
-        wait.until(ExpectedConditions
-                .presenceOfAllElementsLocatedBy(By.xpath(PERMIT_DETAILS_LINK)));
-
-        List<WebElement> links = record.findElements(By.xpath(PERMIT_DETAILS_LINK));
-
-        if (links.isEmpty()) {
-            return null;
+        try {
+            // Очікуємо, поки елемент стане доступним для кліку
+            WebElement permitLink = wait.until(ExpectedConditions.elementToBeClickable(link));
+            // Скролимо до елемента, щоб переконатися, що він у видимій області
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", permitLink);
+            // Клікаємо на посилання
+            permitLink.click();
+        } catch (Exception e) {
+            throw new RuntimeException("Error navigating to record link: " + e.getMessage());
         }
-        return links.get(0);
     }
 }

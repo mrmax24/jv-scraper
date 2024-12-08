@@ -2,50 +2,48 @@ package scraper.app.service.calabasas;
 
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import scraper.app.config.WebDriverProvider;
 import scraper.app.model.FilterDate;
 import scraper.app.service.DataExtractor;
 import scraper.app.service.PageScraper;
-
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 public class CalabasasPageScraperImpl implements PageScraper {
-    public static final String OVERLAY = "overlay";
     private static final String PERMIT_DETAILS_LINK
-            = ".//a[contains(@onclick, 'FormSupport.submitAction')]";
+            = "https://ci-calabasas-ca.smartgovcommunity.com"
+            + "/PermittingPublic/PermitLandingPagePublic/Index/";
     private static final String SEARCH_ITEMS_TAG = "search-result-item";
-    private static final String QUERY_PARAMS = "/Index/";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
-    private final WebDriverProvider webDriverProvider;
     private final CalabasasPageRecordNavigator calabasasPageRecordNavigator;
     private final DataExtractor dataExtractor;
 
     @Override
     public List<String> scrapeResource(String url, int pageNumber, FilterDate filterDate) {
-        List<String> processedPermits = new ArrayList<>();
+        List<String> results = new ArrayList<>();
         WebDriver driver = new ChromeDriver();
         try {
-            driver = webDriverProvider.setupWebDriver();
             driver.get(url);
             applyFilters(driver, filterDate);
             List<WebElement> records = fetchRecords(driver, pageNumber);
-            processRecords(driver, records, processedPermits, pageNumber);
+            results = openLinksFromRecords(records, driver);
         } catch (Exception e) {
-            System.out.println("Error scraping page "
-                    + pageNumber + ": " + e.getMessage());
+            System.out.println("Error scraping page " + pageNumber + ": " + e.getMessage());
         } finally {
             driver.quit();
         }
-        return processedPermits;
+        return results;
     }
 
     private void applyFilters(WebDriver driver, FilterDate filterDate) {
@@ -61,120 +59,76 @@ public class CalabasasPageScraperImpl implements PageScraper {
         if (records.isEmpty()) {
             throw new IllegalStateException("No records found on page " + pageNumber);
         }
+        System.out.println("Found " + records.size() + " records on page " + pageNumber);
         return records;
     }
 
-    private void processRecords(WebDriver driver, List<WebElement> records,
-                                List<String> processedPermits, int pageNumber) {
-        String originalWindow = driver.getWindowHandle();
+    private List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver) {
+        ExecutorService executor = Executors.newFixedThreadPool(records.size());
+        List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
 
-        try {
-            for (int i = 0; i < records.size(); i++) {
-                WebElement record = records.get(i);
+        for (WebElement record : records) {
+            executor.submit(() -> {
+                String tail = fetchLinksTailsFromRecords(record);
+                if (tail != null) {
+                    String fullURL = PERMIT_DETAILS_LINK + tail;
 
-                try {
-                    // Знаходимо посилання на запис
-                    WebElement link = getPermitLink(record, driver);
-                    if (link != null) {
-                        System.out.println("Processing record " + (i + 1));
+                    synchronized (driver) {
+                        ((JavascriptExecutor) driver).executeScript(
+                                "window.open('" + fullURL + "', '_blank');");
+                        System.out.println("Opening link for: " + fullURL);
 
-                        // Обробляємо запис через DataExtractor
-                        String result = dataExtractor.extractRecords(record, driver, link);
-                        processedPermits.add(result);
+                        switchToNewTab(driver);
 
-                        // Закриваємо вкладки та повертаємось до початкового вікна
-                        closeAdditionalTabs(driver, originalWindow);
-                    } else {
-                        System.out.println("Permit link not found in record " + (i + 1));
+                        String processedRecord = dataExtractor.extractRecords(record, driver, null);
+                        processedRecords.add(processedRecord);
+
+                        ((JavascriptExecutor) driver).executeScript("window.close();");
+                        switchToMainTab(driver);
+
+                        System.out.println("Finished extracting data for: " + fullURL);
                     }
-                } catch (Exception e) {
-                    System.err.println("Error processing record " + (i + 1) + ": " + e.getMessage());
-                    e.printStackTrace();
+                } else {
+                    System.out.println("No link found for record.");
                 }
-            }
-        } finally {
-            // Закриття вкладок у кінці всіх ітерацій
-            closeAdditionalTabs(driver, originalWindow);
+            });
         }
+
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        return processedRecords;
     }
 
 
     private void switchToNewTab(WebDriver driver) {
-        String originalHandle = driver.getWindowHandle();
-        Set<String> handles = driver.getWindowHandles();
-        for (String handle : handles) {
-            if (!handle.equals(originalHandle)) {
-                driver.switchTo().window(handle);
-                WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-                break;
-            }
-        }
+        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
+        driver.switchTo().window(tabs.get(tabs.size() - 1));
     }
 
 
-    private void closeAdditionalTabs(WebDriver driver, String originalWindow) {
-        for (String handle : driver.getWindowHandles()) {
-            if (!handle.equals(originalWindow)) {
-                driver.switchTo().window(handle).close();
-            }
-        }
-        driver.switchTo().window(originalWindow);
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+    private void switchToMainTab(WebDriver driver) {
+        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
+        driver.switchTo().window(tabs.get(0));
     }
 
+    private String fetchLinksTailsFromRecords(WebElement record) {
+        WebElement linkElement = record.findElement(By.tagName("a"));
+        String onclickValue = linkElement.getAttribute("onclick");
 
-    private WebDriver setupDriver(String url, int pageNumber) {
-        WebDriver driver = webDriverProvider.setupWebDriver();
-        String pageUrl = url + QUERY_PARAMS + pageNumber;
-        driver.get(pageUrl);
-
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY)));
-        return driver;
-    }
-
-    private WebElement getPermitLink(WebElement record, WebDriver driver) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-
-        wait.until(ExpectedConditions
-                .presenceOfAllElementsLocatedBy(By.xpath(PERMIT_DETAILS_LINK)));
-
-        List<WebElement> links = record.findElements(By.xpath(PERMIT_DETAILS_LINK));
-
-        if (links.isEmpty()) {
+        if (onclickValue != null && onclickValue.contains("Detail/")) {
+            String detailPart = onclickValue.split("Detail/")[1];
+            detailPart = detailPart.split("'")[0];
+            return detailPart;
+        } else {
+            System.out.println("Link was not found in record: " + record);
             return null;
         }
-        return links.get(0);
-    }
-
-    private String extractPermitDetailsLink(WebElement record, WebDriver driver) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-
-        wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(PERMIT_DETAILS_LINK)));
-
-        List<WebElement> links = record.findElements(By.xpath(PERMIT_DETAILS_LINK));
-
-        if (links.isEmpty()) {
-            return null;
-        }
-
-        WebElement link = links.get(0);
-
-        String onclickValue = link.getAttribute("onclick");
-
-        if (onclickValue != null && !onclickValue.isEmpty()) {
-            String detailPath = onclickValue.replaceAll(".*'(Detail/.*?)'.*", "$1");
-
-            System.out.println("Extracted Detail Path: " + detailPath);
-        }
-        return onclickValue;
-    }
-
-    private void refreshPageAndWait(WebDriver driver) {
-        driver.navigate().refresh();
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.className(SEARCH_ITEMS_TAG)));
     }
 }
