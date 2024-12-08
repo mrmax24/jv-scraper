@@ -49,21 +49,13 @@ public class DataExtractorImpl implements DataExtractor {
         StringBuilder builder = new StringBuilder();
         System.out.println("Extracting detailed data...");
 
-        WebElement recordTitle = waitForElement(wait, By.xpath(RECORD_TITLE_TAG));
-        WebElement descriptionElement = waitForElement(wait, By.xpath(DESCRIPTION_XPATH));
-        WebElement statusElement = waitForElement(wait, By.xpath(RECORD_NUMBER_STATUS_XPATH));
-        WebElement feesLabelElement = waitForElement(wait, By.xpath(FEES_LABEL_XPATH));
-        WebElement currencyUnitElement = waitForElement(wait, By.xpath(UNIT_XPATH));
-        WebElement dollarsElement = waitForElement(wait, By.xpath(DOLLARS_XPATH));
-        WebElement centsElement = waitForElement(wait, By.xpath(CENTS_XPATH));
-
-        String title = recordTitle.getText();
-        String description = descriptionElement.getText();
-        String status = statusElement.getText();
-        String feesLabel = feesLabelElement.getText();
-        String currencyUnit = currencyUnitElement.getText();
-        String dollars = dollarsElement.getText();
-        String cents = centsElement.getText();
+        String title = getElementText(wait, By.xpath(RECORD_TITLE_TAG));
+        String description = getElementText(wait, By.xpath(DESCRIPTION_XPATH));
+        String status = getElementText(wait, By.xpath(RECORD_NUMBER_STATUS_XPATH));
+        String feesLabel = getElementText(wait, By.xpath(FEES_LABEL_XPATH));
+        String currencyUnit = getElementText(wait, By.xpath(UNIT_XPATH));
+        String dollars = getElementText(wait, By.xpath(DOLLARS_XPATH));
+        String cents = getElementText(wait, By.xpath(CENTS_XPATH));
 
         builder.append(title).append(NEW_LINE)
                 .append(description).append(NEW_LINE)
@@ -79,21 +71,20 @@ public class DataExtractorImpl implements DataExtractor {
         StringBuilder builder = new StringBuilder();
         System.out.println("Extracting location data...");
 
-        WebElement locationLabel = waitForElement(wait, By.xpath(LOCATION_LABEL_XPATH));
-        WebElement firstLocation = waitForElement(wait, By.xpath(FIRST_LOCATION_XPATH));
-        WebElement secondLocation = waitForElement(wait, By.xpath(SECOND_LOCATION_XPATH));
-        WebElement parcelLabel = waitForElement(wait, By.xpath(PARCEL_LABEL_XPATH));
-        WebElement parcelValue = waitForElement(wait, By.xpath(PARCEL_XPATH));
+        String locationLabel = getElementText(wait, By.xpath(LOCATION_LABEL_XPATH));
+        String firstLocation = getElementText(wait, By.xpath(FIRST_LOCATION_XPATH));
+        String secondLocation = getElementText(wait, By.xpath(SECOND_LOCATION_XPATH));
+        String parcelLabel = getElementText(wait, By.xpath(PARCEL_LABEL_XPATH));
+        String parcelValue = getElementText(wait, By.xpath(PARCEL_XPATH));
 
-        builder.append(locationLabel.getText()).append(": ")
-                .append(firstLocation.getText()).append(", ")
-                .append(secondLocation.getText()).append(NEW_LINE)
-                .append(parcelLabel.getText()).append(": ")
-                .append(parcelValue.getText()).append(NEW_LINE);
+        builder.append(locationLabel).append(": ")
+                .append(firstLocation).append(", ")
+                .append(secondLocation).append(NEW_LINE)
+                .append(parcelLabel).append(": ")
+                .append(parcelValue).append(NEW_LINE);
 
         return builder.toString();
     }
-
 
     private String extractDatesData(WebDriverWait wait) {
         StringBuilder builder = new StringBuilder();
@@ -113,11 +104,24 @@ public class DataExtractorImpl implements DataExtractor {
         return builder.toString();
     }
 
+    private String getElementText(WebDriverWait wait, By locator) {
+        WebElement element = waitForElement(wait, locator);
+        return element != null ? element.getText() : "N/A";
+    }
+
     private WebElement waitForElement(WebDriverWait wait, By locator) {
-        return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        try {
+            return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        } catch (Exception e) {
+            return null; // Якщо елемент не знайдено, повертаємо null
+        }
     }
 
     private List<WebElement> waitForElements(WebDriverWait wait, By locator) {
-        return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
+        try {
+            return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
+        } catch (Exception e) {
+            return List.of(); // Якщо елементи не знайдені, повертаємо порожній список
+        }
     }
 }

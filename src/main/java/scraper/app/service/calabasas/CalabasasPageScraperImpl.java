@@ -22,6 +22,7 @@ public class CalabasasPageScraperImpl implements PageScraper {
             = "https://ci-calabasas-ca.smartgovcommunity.com"
             + "/PermittingPublic/PermitLandingPagePublic/Index/";
     private static final String SEARCH_ITEMS_TAG = "search-result-item";
+    private static final String LINK_TAIL = "Detail/";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private final CalabasasPageRecordNavigator calabasasPageRecordNavigator;
     private final DataExtractor dataExtractor;
@@ -64,7 +65,6 @@ public class CalabasasPageScraperImpl implements PageScraper {
         List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
 
-        // Відкриваємо всі посилання в нових вкладках
         for (WebElement record : records) {
             String tail = fetchLinksTailsFromRecords(record);
             if (tail != null) {
@@ -72,30 +72,24 @@ public class CalabasasPageScraperImpl implements PageScraper {
                 jsExecutor.executeScript("window.open('" + fullURL + "', '_blank');");
             }
         }
-
-        // Отримуємо всі вкладки, включаючи нові
         List<String> tabs = new ArrayList<>(driver.getWindowHandles());
 
-        // Обробляємо кожну вкладку, крім головної
-        for (int i = 1; i < tabs.size(); i++) { // Пропускаємо першу вкладку (головну)
+        for (int i = 1; i < tabs.size(); i++) {
             String tabHandle = tabs.get(i);
             driver.switchTo().window(tabHandle);
 
             try {
                 WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body"))); // Очікуємо завантаження сторінки
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
-                // Скрапимо дані з поточної вкладки
-                String data = dataExtractor.extractRecords(null, driver, null); // Передаємо null, якщо record не потрібний
+                String data = dataExtractor.extractRecords(null, driver, null);
                 processedRecords.add(data);
             } catch (Exception e) {
                 System.out.println("Error scraping tab: " + e.getMessage());
             } finally {
-                jsExecutor.executeScript("window.close();"); // Закриваємо вкладку після обробки
+                jsExecutor.executeScript("window.close();");
             }
         }
-
-        // Повертаємось на головну вкладку
         driver.switchTo().window(tabs.get(0));
         return processedRecords;
     }
@@ -105,8 +99,8 @@ public class CalabasasPageScraperImpl implements PageScraper {
         WebElement linkElement = record.findElement(By.tagName("a"));
         String onclickValue = linkElement.getAttribute("onclick");
 
-        if (onclickValue != null && onclickValue.contains("Detail/")) {
-            String detailPart = onclickValue.split("Detail/")[1];
+        if (onclickValue != null && onclickValue.contains(LINK_TAIL)) {
+            String detailPart = onclickValue.split(LINK_TAIL)[1];
             detailPart = detailPart.split("'")[0];
             return detailPart;
         } else {
