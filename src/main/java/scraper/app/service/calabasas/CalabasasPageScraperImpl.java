@@ -69,27 +69,26 @@ public class CalabasasPageScraperImpl implements PageScraper {
 
         for (WebElement record : records) {
             executor.submit(() -> {
-                String tail = fetchLinksTailsFromRecords(record);
-                if (tail != null) {
-                    String fullURL = PERMIT_DETAILS_LINK + tail;
+                // Створюємо новий драйвер для кожного потоку
+                WebDriver threadDriver = new ChromeDriver();
+                try {
+                    String tail = fetchLinksTailsFromRecords(record);
+                    if (tail != null) {
+                        String fullURL = PERMIT_DETAILS_LINK + tail;
 
-                    synchronized (driver) {
-                        ((JavascriptExecutor) driver).executeScript(
-                                "window.open('" + fullURL + "', '_blank');");
+                        threadDriver.get(fullURL); // Відкриваємо нову вкладку для кожного потоку
                         System.out.println("Opening link for: " + fullURL);
 
-                        switchToNewTab(driver);
-
-                        String processedRecord = dataExtractor.extractRecords(record, driver, null);
+                        // Використовуємо switchTo для того, щоб працювати з вкладками
+                        String processedRecord = dataExtractor.extractRecords(record, threadDriver, null);
                         processedRecords.add(processedRecord);
 
-                        ((JavascriptExecutor) driver).executeScript("window.close();");
-                        switchToMainTab(driver);
-
                         System.out.println("Finished extracting data for: " + fullURL);
+                    } else {
+                        System.out.println("No link found for record.");
                     }
-                } else {
-                    System.out.println("No link found for record.");
+                } finally {
+                    threadDriver.quit(); // Закриваємо драйвер після обробки
                 }
             });
         }
@@ -106,11 +105,6 @@ public class CalabasasPageScraperImpl implements PageScraper {
         return processedRecords;
     }
 
-
-    private void switchToNewTab(WebDriver driver) {
-        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(tabs.size() - 1));
-    }
 
 
     private void switchToMainTab(WebDriver driver) {
