@@ -15,9 +15,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 public class CalabasasPageScraperImpl implements PageScraper {
@@ -64,53 +61,45 @@ public class CalabasasPageScraperImpl implements PageScraper {
     }
 
     private List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver) {
-        ExecutorService executor = Executors.newFixedThreadPool(records.size());
         List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
+        JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
 
+        // Відкриваємо всі посилання в нових вкладках
         for (WebElement record : records) {
-            executor.submit(() -> {
-                // Створюємо новий драйвер для кожного потоку
-                WebDriver threadDriver = new ChromeDriver();
-                try {
-                    String tail = fetchLinksTailsFromRecords(record);
-                    if (tail != null) {
-                        String fullURL = PERMIT_DETAILS_LINK + tail;
-
-                        threadDriver.get(fullURL); // Відкриваємо нову вкладку для кожного потоку
-                        System.out.println("Opening link for: " + fullURL);
-
-                        // Використовуємо switchTo для того, щоб працювати з вкладками
-                        String processedRecord = dataExtractor.extractRecords(record, threadDriver, null);
-                        processedRecords.add(processedRecord);
-
-                        System.out.println("Finished extracting data for: " + fullURL);
-                    } else {
-                        System.out.println("No link found for record.");
-                    }
-                } finally {
-                    threadDriver.quit(); // Закриваємо драйвер після обробки
-                }
-            });
-        }
-
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
+            String tail = fetchLinksTailsFromRecords(record);
+            if (tail != null) {
+                String fullURL = PERMIT_DETAILS_LINK + tail;
+                jsExecutor.executeScript("window.open('" + fullURL + "', '_blank');");
             }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
         }
+
+        // Отримуємо всі вкладки, включаючи нові
+        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
+
+        // Обробляємо кожну вкладку, крім головної
+        for (int i = 1; i < tabs.size(); i++) { // Пропускаємо першу вкладку (головну)
+            String tabHandle = tabs.get(i);
+            driver.switchTo().window(tabHandle);
+
+            try {
+                WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body"))); // Очікуємо завантаження сторінки
+
+                // Скрапимо дані з поточної вкладки
+                String data = dataExtractor.extractRecords(null, driver, null); // Передаємо null, якщо record не потрібний
+                processedRecords.add(data);
+            } catch (Exception e) {
+                System.out.println("Error scraping tab: " + e.getMessage());
+            } finally {
+                jsExecutor.executeScript("window.close();"); // Закриваємо вкладку після обробки
+            }
+        }
+
+        // Повертаємось на головну вкладку
+        driver.switchTo().window(tabs.get(0));
         return processedRecords;
     }
 
-
-
-    private void switchToMainTab(WebDriver driver) {
-        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(0));
-    }
 
     private String fetchLinksTailsFromRecords(WebElement record) {
         WebElement linkElement = record.findElement(By.tagName("a"));

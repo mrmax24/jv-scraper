@@ -16,11 +16,6 @@ public interface ScraperService {
                 -> getCallables(url, pages, filterDate, allProcessedPermits));
     }
 
-    default List<String> scrape(String url, int pageNumber, FilterDate filterDate) {
-        PageScraper pageScraper = (url1, pageNumber1, filterDate1) -> List.of();
-        return pageScraper.scrapeResource(url, pageNumber, filterDate);
-    }
-
     private List<String> scrapeInternal(ThreadPoolManager threadPoolManager,
                                         TaskSupplier taskSupplier) {
         ConcurrentLinkedQueue<String> allProcessedPermits = new ConcurrentLinkedQueue<>();
