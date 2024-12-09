@@ -12,7 +12,7 @@ import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 
 public class CalabasasPageRecordNavigator implements RecordNavigator {
-    private static final Duration TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
     public static final String OVERLAY_ID = "overlay";
     private static final String SEARCH_BUTTON_ID = "Search";
     private static final String SEARCH_SELECTOR_ID = "Module";
@@ -20,8 +20,8 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
     private static final String ISSUED_DATE_FIELD_ID = "IssuedOn.Display";
     private static final String DATE_OPTION_TAG = "//div[contains(@class,"
             + " 'br-datepicker-presets-selections')]";
-    private static final String PERMIT_DETAILS_LINK
-            = ".//a[contains(@onclick, 'FormSupport.submitAction')]";
+    public static final String NEXT_PAGE_BUTTON = "//li/a[contains(@onclick, "
+            + "'ApplicationSearchAdvancedResults.gotoPage')]";
 
     @Override
     public void clickSearchButton(WebDriver driver) {
@@ -56,7 +56,6 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
         }
     }
 
-
     @Override
     public void applyFiltration(WebDriver driver, FilterDate filterDate) {
         clickSearchOption(driver);
@@ -72,7 +71,6 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
                     "arguments[0].scrollIntoView(true);", field);
             wait.until(ExpectedConditions.elementToBeClickable(field)).click();
 
-            // Wait for any overlay or loader to disappear
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".overlay-class")));
 
             WebElement container = wait.until(ExpectedConditions
@@ -83,7 +81,6 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
             ((JavascriptExecutor) driver).executeScript(
                     "arguments[0].scrollIntoView(true);", dateOption);
 
-            // Force-click if standard click fails
             try {
                 wait.until(ExpectedConditions.elementToBeClickable(dateOption)).click();
             } catch (Exception e) {
@@ -97,6 +94,17 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
         }
     }
 
+    @Override
+    public void findAndOpenLinkFromRecord(WebDriver driver, WebElement link) {
+        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+        try {
+            WebElement permitLink = wait.until(ExpectedConditions.elementToBeClickable(link));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", permitLink);
+            permitLink.click();
+        } catch (Exception e) {
+            throw new RuntimeException("Error navigating to record link: " + e.getMessage());
+        }
+    }
 
     public void clickSearchOption(WebDriver driver) {
         try {
@@ -114,18 +122,9 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
         }
     }
 
-    @Override
-    public void findAndOpenLinkFromRecord(WebDriver driver, WebElement link) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        try {
-            // Очікуємо, поки елемент стане доступним для кліку
-            WebElement permitLink = wait.until(ExpectedConditions.elementToBeClickable(link));
-            // Скролимо до елемента, щоб переконатися, що він у видимій області
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", permitLink);
-            // Клікаємо на посилання
-            permitLink.click();
-        } catch (Exception e) {
-            throw new RuntimeException("Error navigating to record link: " + e.getMessage());
-        }
+    public void clickNextButton(WebDriver driver) {
+        JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+        WebElement nextButton = driver.findElement(By.xpath(NEXT_PAGE_BUTTON));
+        jsExecutor.executeScript("arguments[0].click();", nextButton);
     }
 }

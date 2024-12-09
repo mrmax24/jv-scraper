@@ -29,20 +29,31 @@ public class CalabasasPageScraperImpl implements PageScraper {
 
     @Override
     public List<String> scrapeResource(String url, int pageNumber, FilterDate filterDate) {
-        List<String> results = new ArrayList<>();
+        List<String> allResults = new ArrayList<>();
         WebDriver driver = new ChromeDriver();
+        int currentPage = 1;
+
         try {
             driver.get(url);
             applyFilters(driver, filterDate);
-            List<WebElement> records = fetchRecords(driver, pageNumber);
-            results = openLinksFromRecords(records, driver);
+            while (currentPage <= pageNumber) {
+                List<WebElement> records = fetchRecords(driver, currentPage);
+                List<String> results = openLinksFromRecords(records, driver);
+                allResults.addAll(results);
+                if (currentPage < pageNumber) {
+                    calabasasPageRecordNavigator.clickNextButton(driver);
+                }
+                currentPage++;
+            }
         } catch (Exception e) {
-            System.out.println("Error scraping page " + pageNumber + ": " + e.getMessage());
+            System.out.println("Error scraping page " + currentPage + ": "
+                    + e.getMessage());
         } finally {
             driver.quit();
         }
-        return results;
+        return allResults;
     }
+
 
     private void applyFilters(WebDriver driver, FilterDate filterDate) {
         calabasasPageRecordNavigator.applyFiltration(driver, filterDate);

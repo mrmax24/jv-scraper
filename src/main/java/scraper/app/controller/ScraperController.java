@@ -6,7 +6,6 @@ import scraper.app.config.ThreadPoolManager;
 import scraper.app.model.FilterDate;
 import scraper.app.service.PageScraper;
 import scraper.app.service.ScraperService;
-import scraper.app.service.calabasas.CalabasasScraperService;
 import scraper.app.storage.DataStorage;
 
 @RequiredArgsConstructor
