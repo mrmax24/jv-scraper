@@ -105,37 +105,51 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
     public void clickNextButton(WebDriver driver, int pageIndex) {
         boolean clicked = false;
         int attempts = 0;
+
         while (!clicked && attempts < 3) {
             try {
                 String pageButtonXPath = NEXT_PAGE_BUTTON + "(" + pageIndex + ")')]";
                 WebElement nextPageButton = new WebDriverWait(driver, TIMEOUT)
-                        .until(ExpectedConditions.elementToBeClickable(By.xpath(pageButtonXPath)));
+                        .until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageButtonXPath)));
 
-                ((JavascriptExecutor) driver).executeScript(
-                        "arguments[0].scrollIntoView(true);", nextPageButton);
+                // Перевірка на стале елемент
+                if (isElementStale(nextPageButton)) {
+                    System.err.println("Element is stale, re-locating...");
+                    nextPageButton = driver.findElement(By.xpath(pageButtonXPath));
+                }
+
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", nextPageButton);
                 Thread.sleep(500);
-
                 nextPageButton.click();
+
                 clicked = true;
                 System.out.println("Clicked on page button with index: " + pageIndex);
 
-                WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-                wait.until(ExpectedConditions.stalenessOf(nextPageButton)); // Wait for the page content to reload
-
-            } catch (ElementClickInterceptedException e) {
-                System.err.println("Element click intercepted, retrying...");
-                attempts++;
+                // Очікування оновлення сторінки
+                new WebDriverWait(driver, TIMEOUT).until(ExpectedConditions.stalenessOf(nextPageButton));
             } catch (StaleElementReferenceException e) {
                 System.err.println("Stale element reference, retrying...");
+                attempts++;
+            } catch (ElementClickInterceptedException e) {
+                System.err.println("Element click intercepted, retrying...");
                 attempts++;
             } catch (Exception e) {
                 System.err.println("Error clicking next page button: " + e.getMessage());
                 break;
             }
         }
+
         if (!clicked) {
             throw new RuntimeException("Failed to click next page button after 3 attempts");
         }
     }
 
+    private boolean isElementStale(WebElement element) {
+        try {
+            element.isDisplayed(); // Спроба взаємодіяти з елементом
+            return false; // Елемент актуальний
+        } catch (StaleElementReferenceException e) {
+            return true; // Елемент більше недоступний
+        }
+    }
 }
