@@ -25,30 +25,15 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
     public void clickSearchButton(WebDriver driver) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
-        try {
-            // Очікуємо, поки зникне оверлей
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY_ID)));
+        WebElement searchButton = wait.until(ExpectedConditions
+                .presenceOfElementLocated(By.id(SEARCH_BUTTON_ID)));
 
-            // Повторно знаходимо кнопку після оновлення DOM
-            WebElement searchButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id(SEARCH_BUTTON_ID)));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView(true);", searchButton);
 
-            // Прокручуємо до кнопки
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", searchButton);
-
-            // Очікуємо клікабельності
-            wait.until(ExpectedConditions.elementToBeClickable(searchButton));
-
-            // Натискаємо кнопку через JS (якщо стандартний клік недоступний)
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", searchButton);
-
-            System.out.println("Search button clicked successfully.");
-
-        } catch (StaleElementReferenceException e) {
-            System.err.println("Stale element reference exception. Retrying...");
-            clickSearchButton(driver); // Повторна спроба
-        } catch (Exception e) {
-            throw new RuntimeException("Error clicking search button: " + e.getMessage());
-        }
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].click();", searchButton);
+        System.out.println("Search button clicked successfully.");
     }
 
     @Override
