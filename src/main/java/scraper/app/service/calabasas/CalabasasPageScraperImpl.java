@@ -5,7 +5,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.model.FilterDate;
@@ -27,40 +26,13 @@ public class CalabasasPageScraperImpl implements PageScraper {
     private final CalabasasPageRecordNavigator calabasasPageRecordNavigator;
     private final DataExtractor dataExtractor;
 
-    @Override
-    public List<String> scrapeResource(String url, int pageNumber, FilterDate filterDate) {
-        List<String> allResults = new ArrayList<>();
-        WebDriver driver = new ChromeDriver();
-        int currentPage = 1;
 
-        try {
-            driver.get(url);
-            applyFilters(driver, filterDate);
-            while (currentPage <= pageNumber) {
-                List<WebElement> records = fetchRecords(driver, currentPage);
-                List<String> results = openLinksFromRecords(records, driver);
-                allResults.addAll(results);
-                if (currentPage < pageNumber) {
-                    calabasasPageRecordNavigator.clickNextButton(driver);
-                }
-                currentPage++;
-            }
-        } catch (Exception e) {
-            System.out.println("Error scraping page " + currentPage + ": "
-                    + e.getMessage());
-        } finally {
-            driver.quit();
-        }
-        return allResults;
-    }
-
-
-    private void applyFilters(WebDriver driver, FilterDate filterDate) {
+    void applyFilters(WebDriver driver, FilterDate filterDate) {
         calabasasPageRecordNavigator.applyFiltration(driver, filterDate);
         calabasasPageRecordNavigator.clickSearchButton(driver);
     }
 
-    private List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
+    List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
         List<WebElement> records = wait.until(ExpectedConditions
                 .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG)));
@@ -72,7 +44,7 @@ public class CalabasasPageScraperImpl implements PageScraper {
         return records;
     }
 
-    private List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver) {
+    List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver) {
         List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
 
@@ -118,5 +90,10 @@ public class CalabasasPageScraperImpl implements PageScraper {
             System.out.println("Link was not found in record: " + record);
             return null;
         }
+    }
+
+    @Override
+    public List<String> scrapeResource(String url, int pageNumber, FilterDate filterDate) {
+        return List.of();
     }
 }

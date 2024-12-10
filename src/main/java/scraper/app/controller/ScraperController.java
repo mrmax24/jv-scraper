@@ -4,7 +4,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import scraper.app.config.ThreadPoolManager;
 import scraper.app.model.FilterDate;
-import scraper.app.service.PageScraper;
 import scraper.app.service.ScraperService;
 import scraper.app.storage.DataStorage;
 
@@ -13,19 +12,18 @@ public class ScraperController {
     private final ScraperService scraperService;
     private final DataStorage dataStorage;
     private final ThreadPoolManager threadPoolManager;
-    private final PageScraper pageScraper;
 
-    public void startScraping(String url, int pages,
+    public void startScraping1(String url, int pages,
                               String filePath, String fromDate, String toDate) {
         FilterDate filterDate = new FilterDate(fromDate, toDate);
         List<String> data = scraperService.scrape(url, pages, filterDate, threadPoolManager);
         dataStorage.saveToCsv(data, filePath);
     }
 
-    public void startScraping(String url, int pages,
+    public void startScraping2(String url, int pages,
                               String filePath, String issuedDate) {
         FilterDate filterDate = new FilterDate(issuedDate);
-        List<String> data = pageScraper.scrapeResource(url, pages, filterDate);
+        List<String> data = scraperService.scrape(url, pages, filterDate, threadPoolManager);
         dataStorage.saveToCsv(data, filePath);
     }
 }

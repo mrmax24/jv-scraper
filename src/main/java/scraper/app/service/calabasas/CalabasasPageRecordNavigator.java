@@ -1,10 +1,8 @@
 package scraper.app.service.calabasas;
 
 import java.time.Duration;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -20,37 +18,34 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
     private static final String ISSUED_DATE_FIELD_ID = "IssuedOn.Display";
     private static final String DATE_OPTION_TAG = "//div[contains(@class,"
             + " 'br-datepicker-presets-selections')]";
-    public static final String NEXT_PAGE_BUTTON = "//li/a[contains(@onclick, "
-            + "'ApplicationSearchAdvancedResults.gotoPage')]";
+    public static final String NEXT_PAGE_BUTTON = "//li/a[contains(@onclick,"
+            + " 'ApplicationSearchAdvancedResults.gotoPage";
 
     @Override
     public void clickSearchButton(WebDriver driver) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
         try {
+            // Очікуємо, поки зникне оверлей
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY_ID)));
 
-            WebElement searchButton = driver.findElement(By.id(SEARCH_BUTTON_ID));
+            // Повторно знаходимо кнопку після оновлення DOM
+            WebElement searchButton = wait.until(ExpectedConditions.presenceOfElementLocated(By.id(SEARCH_BUTTON_ID)));
 
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            Boolean isCovered = (Boolean) js.executeScript(
-                    "var elem = arguments[0];" +
-                            "var rect = elem.getBoundingClientRect();"
-                            + "return (rect.top >= 0 && rect.left >= 0 && "
-                            + "rect.bottom <= window.innerHeight && rect.right "
-                            + "<= window.innerWidth);", searchButton);
+            // Прокручуємо до кнопки
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", searchButton);
 
-            if (!isCovered) {
-                System.out.println("Element is covered, waiting...");
-                wait.until(ExpectedConditions.elementToBeClickable(searchButton));
-            }
-
-            js.executeScript("arguments[0].scrollIntoView(true);", searchButton);
-
+            // Очікуємо клікабельності
             wait.until(ExpectedConditions.elementToBeClickable(searchButton));
 
-            js.executeScript("arguments[0].click();", searchButton);
+            // Натискаємо кнопку через JS (якщо стандартний клік недоступний)
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", searchButton);
 
+            System.out.println("Search button clicked successfully.");
+
+        } catch (StaleElementReferenceException e) {
+            System.err.println("Stale element reference exception. Retrying...");
+            clickSearchButton(driver); // Повторна спроба
         } catch (Exception e) {
             throw new RuntimeException("Error clicking search button: " + e.getMessage());
         }
@@ -122,9 +117,40 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
         }
     }
 
-    public void clickNextButton(WebDriver driver) {
-        JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
-        WebElement nextButton = driver.findElement(By.xpath(NEXT_PAGE_BUTTON));
-        jsExecutor.executeScript("arguments[0].click();", nextButton);
+    public void clickNextButton(WebDriver driver, int pageIndex) {
+        boolean clicked = false;
+        int attempts = 0;
+        while (!clicked && attempts < 3) {
+            try {
+                String pageButtonXPath = NEXT_PAGE_BUTTON + "(" + pageIndex + ")')]";
+                WebElement nextPageButton = new WebDriverWait(driver, TIMEOUT)
+                        .until(ExpectedConditions.elementToBeClickable(By.xpath(pageButtonXPath)));
+
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollIntoView(true);", nextPageButton);
+                Thread.sleep(500);
+
+                nextPageButton.click();
+                clicked = true;
+                System.out.println("Clicked on page button with index: " + pageIndex);
+
+                WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+                wait.until(ExpectedConditions.stalenessOf(nextPageButton)); // Wait for the page content to reload
+
+            } catch (ElementClickInterceptedException e) {
+                System.err.println("Element click intercepted, retrying...");
+                attempts++;
+            } catch (StaleElementReferenceException e) {
+                System.err.println("Stale element reference, retrying...");
+                attempts++;
+            } catch (Exception e) {
+                System.err.println("Error clicking next page button: " + e.getMessage());
+                break;
+            }
+        }
+        if (!clicked) {
+            throw new RuntimeException("Failed to click next page button after 3 attempts");
+        }
     }
+
 }

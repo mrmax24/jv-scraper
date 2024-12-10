@@ -11,8 +11,8 @@ import scraper.app.util.ComponentsInitializer;
 import scraper.app.util.ScraperTimer;
 
 public class Main {
-    public static final int PAGE_NUMBER = 2;
-    public static final int THREAD_POOL_SIZE = 2;
+    public static final int PAGE_NUMBER = 3;
+    public static final int THREAD_POOL_SIZE = 3;
     public static final String FROM_DATE = "09/01/2024";
     public static final String TO_DATE = "09/30/2024";
     public static final String ISSUED_DATE = "Last 30 Days";
@@ -43,13 +43,13 @@ public class Main {
 
     private static void runHendersonScrapingTask(Components components) {
         ScraperController controller = components.scraperController1();
-        controller.startScraping(HENDERSON_URL, PAGE_NUMBER,
+        controller.startScraping1(HENDERSON_URL, PAGE_NUMBER,
                 FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
     }
 
     private static void runCalabasasScrapingTask(Components components) {
         ScraperController controller = components.scraperController2();
-        controller.startScraping(CALABASAS_URL, PAGE_NUMBER,
+        controller.startScraping2(CALABASAS_URL, PAGE_NUMBER,
                 FILE_PATH_FOR_CALABASAS, ISSUED_DATE);
     }
 
