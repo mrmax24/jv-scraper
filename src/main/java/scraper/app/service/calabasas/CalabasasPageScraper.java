@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class CalabasasScraper {
+public class CalabasasPageScraper {
     private static final String PERMIT_DETAILS_LINK
             = "https://ci-calabasas-ca.smartgovcommunity.com"
             + "/PermittingPublic/PermitLandingPagePublic/Index/";

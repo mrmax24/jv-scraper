@@ -14,8 +14,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @RequiredArgsConstructor
-class CalabasasScraperService implements ScraperService {
-    private final CalabasasScraper pageScraper;
+public class CalabasasScraperService implements ScraperService {
+    private final CalabasasPageScraper pageScraper;
     private final CalabasasNavigator pageRecordNavigator;
 
     @Override
