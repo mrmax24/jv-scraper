@@ -13,7 +13,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 
-public class CalabasasNavigator implements RecordNavigator {
+public class CalabasasPageNavigator implements RecordNavigator {
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
     public static final String OVERLAY_ID = "overlay";
     public static final String OVERLAY_CLASS = ".overlay-class";

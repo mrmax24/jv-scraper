@@ -16,7 +16,7 @@ import scraper.app.service.DataExtractor;
 import scraper.app.service.PageScraper;
 
 @RequiredArgsConstructor
-public class HendersonPageScraperImpl implements PageScraper {
+public class HendersonPageScraper implements PageScraper {
     public static final String OVERLAY = "overlay";
     private static final String RECORD_PATH = "//div[contains(@id, 'entityRecordDiv')]";
     private static final String PERMIT_DETAILS_LINK = ".//a[contains(@href, '#/permit/')]";
@@ -24,7 +24,7 @@ public class HendersonPageScraperImpl implements PageScraper {
     private static final int ATTEMPTS_NUMBER = 3;
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private final WebDriverProvider webDriverProvider;
-    private final HendersonPageRecordNavigator hendersonPageRecordNavigator;
+    private final HendersonPageNavigator hendersonPageNavigator;
     private final DataExtractor dataExtractor;
 
     @Override
@@ -62,8 +62,8 @@ public class HendersonPageScraperImpl implements PageScraper {
     }
 
     private void applyFilters(WebDriver driver, FilterDate filterDate) {
-        hendersonPageRecordNavigator.applyFiltration(driver, filterDate);
-        hendersonPageRecordNavigator.clickSearchButton(driver);
+        hendersonPageNavigator.applyFiltration(driver, filterDate);
+        hendersonPageNavigator.clickSearchButton(driver);
     }
 
     private List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {

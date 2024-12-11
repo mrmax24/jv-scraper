@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -14,7 +13,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.service.DataExtractor;
 
 @RequiredArgsConstructor
-public class DataExtractorImpl implements DataExtractor {
+public class HendersonDataExtractor implements DataExtractor {
     private static final String NEW_LINE = System.lineSeparator();
     private static final String EMPTY_MESSAGE = "Empty field";
     private static final String NO_DATA_MESSAGE = "No data";
@@ -36,7 +35,7 @@ public class DataExtractorImpl implements DataExtractor {
     private static final String DISTRICT = "label-PermitDetail-District";
     private static final String CONTACTS_TABLE = "selfServiceTable-Contacts";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
-    private final HendersonPageRecordNavigator hendersonPageRecordNavigator;
+    private final HendersonPageNavigator hendersonPageNavigator;
 
     @Override
     public String extractRecords(WebElement record, WebDriver driver, WebElement link) {
@@ -54,12 +53,12 @@ public class DataExtractorImpl implements DataExtractor {
             appendRecordData(result, "Expiration Date", record, EXPIRATION_DATE, driver);
             appendRecordData(result, "Finalized Date", record, FINALIZED_DATE, driver);
 
-            hendersonPageRecordNavigator.findAndOpenLinkFromRecord(driver, link);
+            hendersonPageNavigator.findAndOpenLinkFromRecord(driver, link);
 
             WebElement district = extractDistrict(driver);
             result.append("District: ").append(district.getText()).append(NEW_LINE);
 
-            hendersonPageRecordNavigator.clickContactsButton((driver));
+            hendersonPageNavigator.clickContactsButton((driver));
 
             List<String> additionalData = extractContactData(driver);
             additionalData.forEach(result::append);
@@ -72,7 +71,7 @@ public class DataExtractorImpl implements DataExtractor {
     private void appendRecordData(
             StringBuilder result, String label, WebElement record, String xpath, WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
             String value = record.findElement(By.xpath(xpath)).getText();
             result.append(label).append(": ").append(value.isEmpty()

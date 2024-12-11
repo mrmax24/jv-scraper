@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @RequiredArgsConstructor
 public class CalabasasScraperService implements ScraperService {
     private final CalabasasPageScraper pageScraper;
-    private final CalabasasNavigator pageRecordNavigator;
+    private final CalabasasPageNavigator pageRecordNavigator;
 
     @Override
     public List<String> scrape(String url, int pages, FilterDate filterDate,
@@ -39,7 +39,6 @@ public class CalabasasScraperService implements ScraperService {
             int pageNumber = i + 1;
             tasks.add(createTask(url, pageNumber, filterDate, allProcessedPermits));
         }
-
         return tasks;
     }
 

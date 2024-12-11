@@ -12,7 +12,7 @@ import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 import scraper.app.storage.DataStorage;
 
-public class HendersonPageRecordNavigator implements RecordNavigator {
+public class HendersonPageNavigator implements RecordNavigator {
     public static final String OVERLAY_ID = "overlay";
     private static final String SEARCH_BUTTON_ID = "button-Search";
     private static final String CONTACTS_BUTTON_ID = "button-TabButton-Contacts";

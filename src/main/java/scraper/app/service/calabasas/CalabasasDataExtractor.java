@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class DataExtractorImpl implements DataExtractor {
+public class CalabasasDataExtractor implements DataExtractor {
     private static final String RECORD_TITLE_TAG = ".//td[contains(@aria-label, 'Record number')]"
             + "//span[contains(@class, 'm-r-sm')]";
     private static final String DESCRIPTION_XPATH = "//td[@class='project-header-title p-b']";
@@ -111,7 +111,7 @@ public class DataExtractorImpl implements DataExtractor {
         try {
             return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
         } catch (Exception e) {
-            throw new RuntimeException("" + e.getMessage());
+            throw new RuntimeException("Could not find elements for locator: " + locator);
         }
     }
 }

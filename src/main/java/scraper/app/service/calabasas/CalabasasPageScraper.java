@@ -22,13 +22,13 @@ public class CalabasasPageScraper {
     private static final String SEARCH_ITEMS_TAG = "search-result-item";
     private static final String LINK_TAIL = "Detail/";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
-    private final CalabasasNavigator calabasasNavigator;
+    private final CalabasasPageNavigator calabasasPageNavigator;
     private final DataExtractor dataExtractor;
 
 
     void applyFilters(WebDriver driver, FilterDate filterDate) {
-        calabasasNavigator.applyFiltration(driver, filterDate);
-        calabasasNavigator.clickSearchButton(driver);
+        calabasasPageNavigator.applyFiltration(driver, filterDate);
+        calabasasPageNavigator.clickSearchButton(driver);
     }
 
     List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {

@@ -29,12 +29,12 @@ public class Main {
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         long totalScrapingTime = ScraperTimer.measureExecutionTime(() -> {
-            //Future<?> task1 = executorService.submit(() -> runHendersonScrapingTask(components));
-            Future<?> task2 = executorService.submit(() -> runCalabasasScrapingTask(components));
+            Future<?> hendersonTask = executorService.submit(() -> runHendersonScrapingTask(components));
+            Future<?> calabasasTask = executorService.submit(() -> runCalabasasScrapingTask(components));
 
-            handleTaskCompletion(task2);
+            handleTaskCompletion(hendersonTask);
+            handleTaskCompletion(calabasasTask);
         });
-
         executorService.shutdown();
         new DataStorage().saveLogToCsv(
                 System.lineSeparator() + "Total scraping time: " + totalScrapingTime);
@@ -43,13 +43,13 @@ public class Main {
 
     private static void runHendersonScrapingTask(Components components) {
         ScraperController controller = components.scraperController1();
-        controller.startScraping1(HENDERSON_URL, PAGE_NUMBER,
+        controller.startScrapingHendersonPage(HENDERSON_URL, PAGE_NUMBER,
                 FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
     }
 
     private static void runCalabasasScrapingTask(Components components) {
         ScraperController controller = components.scraperController2();
-        controller.startScraping2(CALABASAS_URL, PAGE_NUMBER,
+        controller.startScrapingCalabasasPage(CALABASAS_URL, PAGE_NUMBER,
                 FILE_PATH_FOR_CALABASAS, ISSUED_DATE);
     }
 

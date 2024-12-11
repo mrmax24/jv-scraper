@@ -13,15 +13,15 @@ public class ScraperController {
     private final DataStorage dataStorage;
     private final ThreadPoolManager threadPoolManager;
 
-    public void startScraping1(String url, int pages,
-                              String filePath, String fromDate, String toDate) {
+    public void startScrapingHendersonPage(String url, int pages,
+                                           String filePath, String fromDate, String toDate) {
         FilterDate filterDate = new FilterDate(fromDate, toDate);
         List<String> data = scraperService.scrape(url, pages, filterDate, threadPoolManager);
         dataStorage.saveToCsv(data, filePath);
     }
 
-    public void startScraping2(String url, int pages,
-                              String filePath, String issuedDate) {
+    public void startScrapingCalabasasPage(String url, int pages,
+                                           String filePath, String issuedDate) {
         FilterDate filterDate = new FilterDate(issuedDate);
         List<String> data = scraperService.scrape(url, pages, filterDate, threadPoolManager);
         dataStorage.saveToCsv(data, filePath);
