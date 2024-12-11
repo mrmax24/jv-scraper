@@ -36,19 +36,16 @@ public class DataExtractorImpl implements DataExtractor {
     @Override
     public String extractRecords(WebElement record, WebDriver driver, WebElement link) {
         StringBuilder result = new StringBuilder();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
 
         result.append(extractMainData(wait))
                 .append(extractLocationData(wait))
                 .append(extractDatesData(wait));
-
         return result.toString();
     }
 
     private String extractMainData(WebDriverWait wait) {
         StringBuilder builder = new StringBuilder();
-        System.out.println("Extracting detailed data...");
-
         String title = getElementText(wait, By.xpath(RECORD_TITLE_TAG));
         String description = getElementText(wait, By.xpath(DESCRIPTION_XPATH));
         String status = getElementText(wait, By.xpath(RECORD_NUMBER_STATUS_XPATH));
@@ -63,14 +60,11 @@ public class DataExtractorImpl implements DataExtractor {
                 .append(feesLabel).append(": ")
                 .append(currencyUnit)
                 .append(dollars).append(".").append(cents).append(NEW_LINE);
-
         return builder.toString();
     }
 
     private String extractLocationData(WebDriverWait wait) {
         StringBuilder builder = new StringBuilder();
-        System.out.println("Extracting location data...");
-
         String locationLabel = getElementText(wait, By.xpath(LOCATION_LABEL_XPATH));
         String firstLocation = getElementText(wait, By.xpath(FIRST_LOCATION_XPATH));
         String secondLocation = getElementText(wait, By.xpath(SECOND_LOCATION_XPATH));
@@ -82,14 +76,11 @@ public class DataExtractorImpl implements DataExtractor {
                 .append(secondLocation).append(NEW_LINE)
                 .append(parcelLabel).append(": ")
                 .append(parcelValue).append(NEW_LINE);
-
         return builder.toString();
     }
 
     private String extractDatesData(WebDriverWait wait) {
         StringBuilder builder = new StringBuilder();
-        System.out.println("Extracting date data...");
-
         List<WebElement> fieldLabels = waitForElements(wait, By.xpath(FIELD_LABEL_XPATH));
         List<WebElement> fieldValues = waitForElements(wait, By.xpath(FIELD_VALUE_XPATH));
 
@@ -100,7 +91,6 @@ public class DataExtractorImpl implements DataExtractor {
             String valueText = fieldValues.get(i).getText().trim();
             builder.append(labelText).append(": ").append(valueText).append(NEW_LINE);
         }
-
         return builder.toString();
     }
 
@@ -113,7 +103,7 @@ public class DataExtractorImpl implements DataExtractor {
         try {
             return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
         } catch (Exception e) {
-            return null; // Якщо елемент не знайдено, повертаємо null
+            return null;
         }
     }
 
@@ -121,7 +111,7 @@ public class DataExtractorImpl implements DataExtractor {
         try {
             return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
         } catch (Exception e) {
-            return List.of(); // Якщо елементи не знайдені, повертаємо порожній список
+            throw new RuntimeException("" + e.getMessage());
         }
     }
 }

@@ -6,11 +6,11 @@ import scraper.app.config.ThreadPoolManager;
 import scraper.app.config.WebDriverProvider;
 import scraper.app.service.DataExtractor;
 import scraper.app.service.PageScraper;
-import scraper.app.service.calabasas.CalabasasPageScraperImpl;
+import scraper.app.service.calabasas.CalabasasScraper;
 import scraper.app.service.calabasas.CalabasasScraperService;
 import scraper.app.service.henderson.HandersonScraperService;
 import scraper.app.service.henderson.HendersonPageRecordNavigator;
-import scraper.app.service.calabasas.CalabasasPageRecordNavigator;
+import scraper.app.service.calabasas.CalabasasNavigator;
 import scraper.app.service.henderson.HendersonPageScraperImpl;
 import scraper.app.storage.DataStorage;
 
@@ -33,10 +33,10 @@ public class ScraperControllerFactory {
         } else {
             DataExtractor dataExtractor = new scraper.app.service
                     .calabasas.DataExtractorImpl();
-            CalabasasPageRecordNavigator recordNavigator = new CalabasasPageRecordNavigator();
+            CalabasasNavigator recordNavigator = new CalabasasNavigator();
 
             return new ScraperController(new CalabasasScraperService(
-                    new CalabasasPageScraperImpl(recordNavigator, dataExtractor), recordNavigator),
+                    new CalabasasScraper(recordNavigator, dataExtractor), recordNavigator),
                     new DataStorage(),
                     new ThreadPoolManager(Main.THREAD_POOL_SIZE));
         }

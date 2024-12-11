@@ -9,38 +9,35 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.model.FilterDate;
 import scraper.app.service.DataExtractor;
-import scraper.app.service.PageScraper;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class CalabasasPageScraperImpl implements PageScraper {
+public class CalabasasScraper {
     private static final String PERMIT_DETAILS_LINK
             = "https://ci-calabasas-ca.smartgovcommunity.com"
             + "/PermittingPublic/PermitLandingPagePublic/Index/";
     private static final String SEARCH_ITEMS_TAG = "search-result-item";
     private static final String LINK_TAIL = "Detail/";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
-    private final CalabasasPageRecordNavigator calabasasPageRecordNavigator;
+    private final CalabasasNavigator calabasasNavigator;
     private final DataExtractor dataExtractor;
 
 
     void applyFilters(WebDriver driver, FilterDate filterDate) {
-        calabasasPageRecordNavigator.applyFiltration(driver, filterDate);
-        calabasasPageRecordNavigator.clickSearchButton(driver);
+        calabasasNavigator.applyFiltration(driver, filterDate);
+        calabasasNavigator.clickSearchButton(driver);
     }
 
     List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
         List<WebElement> records = wait.until(ExpectedConditions
                 .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG)));
-
         if (records.isEmpty()) {
             throw new IllegalStateException("No records found on page " + pageNumber);
         }
-        System.out.println("Found " + records.size() + " records on page " + pageNumber);
         return records;
     }
 
@@ -90,10 +87,5 @@ public class CalabasasPageScraperImpl implements PageScraper {
             System.out.println("Link was not found in record: " + record);
             return null;
         }
-    }
-
-    @Override
-    public List<String> scrapeResource(String url, int pageNumber, FilterDate filterDate) {
-        return List.of();
     }
 }

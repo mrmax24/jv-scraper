@@ -1,17 +1,22 @@
 package scraper.app.service.calabasas;
 
 import java.time.Duration;
-
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 
-public class CalabasasPageRecordNavigator implements RecordNavigator {
+public class CalabasasNavigator implements RecordNavigator {
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
     public static final String OVERLAY_ID = "overlay";
+    public static final String OVERLAY_CLASS = ".overlay-class";
     private static final String SEARCH_BUTTON_ID = "Search";
     private static final String SEARCH_SELECTOR_ID = "Module";
     private static final String PERMIT_OPTION_ID = "Permits Only";
@@ -23,17 +28,21 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
 
     @Override
     public void clickSearchButton(WebDriver driver) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            By searchButtonLocator = By.id(SEARCH_BUTTON_ID);
 
-        WebElement searchButton = wait.until(ExpectedConditions
-                .presenceOfElementLocated(By.id(SEARCH_BUTTON_ID)));
+            WebElement searchButton = wait.until(
+                    ExpectedConditions.presenceOfElementLocated(searchButtonLocator));
+            searchButton = refreshIfStale(driver, searchButton, searchButtonLocator);
 
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView(true);", searchButton);
-
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].click();", searchButton);
-        System.out.println("Search button clicked successfully.");
+            scrollIntoView(driver, searchButton);
+            clickOnArgument(driver, searchButton);
+        } catch (StaleElementReferenceException e) {
+            clickSearchButton(driver);
+        } catch (Exception e) {
+            throw new RuntimeException("Error clicking search button: " + e.getMessage());
+        }
     }
 
     @Override
@@ -46,28 +55,26 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
 
             WebElement field = wait.until(ExpectedConditions
                     .presenceOfElementLocated(By.id(ISSUED_DATE_FIELD_ID)));
+            refreshIfStale(driver, field, By.id(ISSUED_DATE_FIELD_ID));
 
-            ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].scrollIntoView(true);", field);
+            scrollIntoView(driver, field);
             wait.until(ExpectedConditions.elementToBeClickable(field)).click();
 
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".overlay-class")));
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(OVERLAY_CLASS)));
 
             WebElement container = wait.until(ExpectedConditions
-                    .elementToBeClickable(By.xpath(DATE_OPTION_TAG)));
+                    .visibilityOfElementLocated(By.xpath(DATE_OPTION_TAG)));
 
-            WebElement dateOption = container.findElement(By.xpath(
-                    ".//span[text()='" + issuedDate + "']"));
-            ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].scrollIntoView(true);", dateOption);
+            if (container != null) {
+                String dateXPath = ".//span[text()='" + issuedDate + "']";
+                WebElement dateOption = container.findElement(By.xpath(dateXPath));
 
-            try {
+                refreshIfStale(driver, dateOption, By.xpath(dateXPath));
+                scrollIntoView(driver, dateOption);
+
                 wait.until(ExpectedConditions.elementToBeClickable(dateOption)).click();
-            } catch (Exception e) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", dateOption);
             }
-
-            clickSearchButton(driver);
+                clickSearchButton(driver);
 
         } catch (Exception e) {
             throw new RuntimeException("Error applying filtration: " + e.getMessage());
@@ -79,7 +86,7 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
         try {
             WebElement permitLink = wait.until(ExpectedConditions.elementToBeClickable(link));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", permitLink);
+            scrollIntoView(driver, permitLink);
             permitLink.click();
         } catch (Exception e) {
             throw new RuntimeException("Error navigating to record link: " + e.getMessage());
@@ -112,33 +119,21 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
                 WebElement nextPageButton = new WebDriverWait(driver, TIMEOUT)
                         .until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageButtonXPath)));
 
-                // Перевірка на стале елемент
                 if (isElementStale(nextPageButton)) {
-                    System.err.println("Element is stale, re-locating...");
                     nextPageButton = driver.findElement(By.xpath(pageButtonXPath));
                 }
-
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", nextPageButton);
+                scrollIntoView(driver, nextPageButton);
                 Thread.sleep(500);
                 nextPageButton.click();
-
                 clicked = true;
-                System.out.println("Clicked on page button with index: " + pageIndex);
-
-                // Очікування оновлення сторінки
                 new WebDriverWait(driver, TIMEOUT).until(ExpectedConditions.stalenessOf(nextPageButton));
-            } catch (StaleElementReferenceException e) {
-                System.err.println("Stale element reference, retrying...");
-                attempts++;
-            } catch (ElementClickInterceptedException e) {
-                System.err.println("Element click intercepted, retrying...");
+            } catch (StaleElementReferenceException | ElementClickInterceptedException e) {
                 attempts++;
             } catch (Exception e) {
                 System.err.println("Error clicking next page button: " + e.getMessage());
                 break;
             }
         }
-
         if (!clicked) {
             throw new RuntimeException("Failed to click next page button after 3 attempts");
         }
@@ -146,10 +141,29 @@ public class CalabasasPageRecordNavigator implements RecordNavigator {
 
     private boolean isElementStale(WebElement element) {
         try {
-            element.isDisplayed(); // Спроба взаємодіяти з елементом
-            return false; // Елемент актуальний
+            element.isDisplayed();
+            return false;
         } catch (StaleElementReferenceException e) {
-            return true; // Елемент більше недоступний
+            return true;
+        }
+    }
+
+    private void clickOnArgument(WebDriver driver, WebElement element) {
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", element);
+    }
+
+    private void scrollIntoView(WebDriver driver, WebElement element) {
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView(true);", element);
+    }
+
+    private WebElement refreshIfStale(WebDriver driver, WebElement element, By locator) {
+        try {
+            element.isDisplayed();
+            return element;
+        } catch (StaleElementReferenceException e) {
+            return driver.findElement(locator);
         }
     }
 }

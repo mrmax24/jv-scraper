@@ -14,16 +14,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @RequiredArgsConstructor
-public class CalabasasScraperService implements ScraperService {
-    private final CalabasasPageScraperImpl pageScraper;
-    private final CalabasasPageRecordNavigator pageRecordNavigator;
+class CalabasasScraperService implements ScraperService {
+    private final CalabasasScraper pageScraper;
+    private final CalabasasNavigator pageRecordNavigator;
 
     @Override
     public List<String> scrape(String url, int pages, FilterDate filterDate,
                                ThreadPoolManager threadPoolManager) {
         List<String> strings = ScraperService.super.scrape(url, pages, filterDate, threadPoolManager);
         new DataStorage().saveLogToCsv(
-                "Total records found for the city website: "
+                "Total records found for the Calabasas city website: "
                         + strings.size());
         return strings;
     }
@@ -37,40 +37,41 @@ public class CalabasasScraperService implements ScraperService {
 
         for (int i = 0; i < pages; i++) {
             int pageNumber = i + 1;
-            tasks.add(() -> {
-                WebDriver driver = new ChromeDriver();
-                try {
-                    System.out.println("Starting scraping for page " + pageNumber);
-
-                    driver.get(url);
-                    pageScraper.applyFilters(driver, filterDate);
-
-                    for (int j = 1; j < pageNumber; j++) {
-                        pageRecordNavigator.clickNextButton(driver, j);
-                    }
-
-                    List<WebElement> records = pageScraper.fetchRecords(driver, pageNumber);
-
-                    if (records.isEmpty()) {
-                        System.err.println("No records found on page " + pageNumber);
-                        return null;
-                    }
-
-                    List<String> results = pageScraper.openLinksFromRecords(records, driver);
-
-                    allProcessedPermits.addAll(results);
-                    System.out.println("Successfully scraped page " + pageNumber);
-
-                } catch (Exception e) {
-                    System.err.println("Error scraping page " + pageNumber + ": " + e.getMessage());
-                } finally {
-                    driver.quit();
-                }
-                return null;
-            });
+            tasks.add(createTask(url, pageNumber, filterDate, allProcessedPermits));
         }
 
         return tasks;
     }
-}
 
+    private Callable<Void> createTask(String url, int pageNumber, FilterDate filterDate,
+                                      ConcurrentLinkedQueue<String> allProcessedPermits) {
+        return () -> {
+            WebDriver driver = new ChromeDriver();
+            try {
+                driver.get(url);
+                pageScraper.applyFilters(driver, filterDate);
+                navigateToPage(driver, pageNumber);
+                List<WebElement> records = pageScraper.fetchRecords(driver, pageNumber);
+
+                if (records.isEmpty()) {
+                    return null;
+                }
+                List<String> results = pageScraper.openLinksFromRecords(records, driver);
+                allProcessedPermits.addAll(results);
+                System.out.println("Successfully scraped page " + pageNumber);
+            } catch (Exception e) {
+                throw new RuntimeException(
+                        "Error scraping page " + pageNumber + ": " + e.getMessage());
+            } finally {
+                driver.quit();
+            }
+            return null;
+        };
+    }
+
+    private void navigateToPage(WebDriver driver, int pageNumber) {
+        for (int j = 1; j < pageNumber; j++) {
+            pageRecordNavigator.clickNextButton(driver, j);
+        }
+    }
+}
