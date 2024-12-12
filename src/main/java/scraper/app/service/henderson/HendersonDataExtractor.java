@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -15,12 +16,12 @@ import scraper.app.service.DataExtractor;
 @RequiredArgsConstructor
 public class HendersonDataExtractor implements DataExtractor {
     private static final String NEW_LINE = System.lineSeparator();
-    private static final String EMPTY_MESSAGE = "Empty field";
-    private static final String NO_DATA_MESSAGE = "No data";
-    private static final String PARAGRAPH = ".//p";
     private static final String RAW = "tr";
     private static final String COLUMN = "td";
     private static final String HEADER = "th";
+    private static final String PARAGRAPH = ".//p";
+    private static final String EMPTY_MESSAGE = "Empty field";
+    private static final String NO_DATA_MESSAGE = "No data";
     private static final String PERMIT_NUMBER = ".//div[@name='label-CaseNumber']//span";
     private static final String PERMIT_TYPE = ".//div[@name='label-CaseType']//span";
     private static final String PROJECT_NAME = ".//div[@name='label-Project']//span";
@@ -71,8 +72,9 @@ public class HendersonDataExtractor implements DataExtractor {
     private void appendRecordData(
             StringBuilder result, String label, WebElement record, String xpath, WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+            new WebDriverWait(driver, TIMEOUT).until(
+                    webDriver -> ((JavascriptExecutor) webDriver)
+                            .executeScript("return document.readyState").equals("complete"));
             String value = record.findElement(By.xpath(xpath)).getText();
             result.append(label).append(": ").append(value.isEmpty()
                     ? EMPTY_MESSAGE : value).append(NEW_LINE);
