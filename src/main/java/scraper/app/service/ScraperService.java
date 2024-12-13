@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scraper.app.config.ThreadPoolManager;
 import scraper.app.model.FilterDate;
-import scraper.app.storage.DataStorage;
+import scraper.app.service.calabasas.CalabasasScraperService;
 
 public interface ScraperService {
+    Logger log = LoggerFactory.getLogger(CalabasasScraperService.class);
 
     default List<String> scrape(String url, int pages, FilterDate filterDate,
                                 ThreadPoolManager threadPoolManager) {
@@ -35,9 +38,8 @@ public interface ScraperService {
                 List<String> result = pageScraper
                         .scrapeResource(url, pageNumber, filterDate);
 
-                new DataStorage().saveLogToCsv(
-                        "Finished scrape for Calabasas' page #"
-                                + pageNumber + ", found: " + result.size() + " records");
+                log.info("Finished scrape for Calabasas' page #{}, found: {} records",
+                        pageNumber, result.size());
 
                 allProcessedPermits.addAll(result);
                 return null;

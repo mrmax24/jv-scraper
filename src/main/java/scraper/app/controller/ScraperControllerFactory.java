@@ -7,12 +7,12 @@ import scraper.app.config.WebDriverProvider;
 import scraper.app.service.DataExtractor;
 import scraper.app.service.PageScraper;
 import scraper.app.service.calabasas.CalabasasDataExtractor;
+import scraper.app.service.calabasas.CalabasasPageNavigator;
 import scraper.app.service.calabasas.CalabasasPageScraper;
 import scraper.app.service.calabasas.CalabasasScraperService;
 import scraper.app.service.henderson.HandersonScraperService;
 import scraper.app.service.henderson.HendersonDataExtractor;
 import scraper.app.service.henderson.HendersonPageNavigator;
-import scraper.app.service.calabasas.CalabasasPageNavigator;
 import scraper.app.service.henderson.HendersonPageScraper;
 import scraper.app.storage.DataStorage;
 

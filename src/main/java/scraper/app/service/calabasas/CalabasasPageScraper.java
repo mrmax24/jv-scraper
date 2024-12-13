@@ -1,5 +1,9 @@
 package scraper.app.service.calabasas;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -7,51 +11,63 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scraper.app.model.FilterDate;
 import scraper.app.service.DataExtractor;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @RequiredArgsConstructor
 public class CalabasasPageScraper {
-    private static final String PERMIT_DETAILS_LINK
-            = "https://ci-calabasas-ca.smartgovcommunity.com"
+    private static final Logger log = LoggerFactory.getLogger(CalabasasPageScraper.class);
+
+    private static final String PERMIT_DETAILS_LINK = "https://ci-calabasas-ca.smartgovcommunity.com"
             + "/PermittingPublic/PermitLandingPagePublic/Index/";
     private static final String SEARCH_ITEMS_TAG = "search-result-item";
     private static final String LINK_TAIL = "Detail/";
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration TIMEOUT = Duration.ofSeconds(10);
     private final CalabasasPageNavigator calabasasPageNavigator;
     private final DataExtractor dataExtractor;
 
-
     void applyFilters(WebDriver driver, FilterDate filterDate) {
-        calabasasPageNavigator.applyFiltration(driver, filterDate);
-        calabasasPageNavigator.clickSearchButton(driver);
+        log.info("Applying filters with date: {}", filterDate);
+        try {
+            calabasasPageNavigator.applyFiltration(driver, filterDate);
+            calabasasPageNavigator.clickSearchButton(driver);
+            log.info("Filters applied successfully");
+        } catch (Exception e) {
+            log.error("Error while applying filters: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        List<WebElement> records = wait.until(ExpectedConditions
-                .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG)));
-        if (records.isEmpty()) {
-            throw new IllegalStateException("No records found on page " + pageNumber);
+        log.info("Fetching records from page {}", pageNumber);
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            List<WebElement> records = wait.until(ExpectedConditions
+                    .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG)));
+            log.info("Fetched {} records from page {}", records.size(), pageNumber);
+            return records;
+        } catch (Exception e) {
+            log.error("Failed to fetch records on page {}: {}", pageNumber, e.getMessage(), e);
+            throw e;
         }
-        return records;
     }
 
     List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver) {
+        log.info("Opening links from records");
         List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
 
         for (WebElement record : records) {
             String tail = fetchLinksTailsFromRecords(record);
             if (tail != null) {
-                String fullURL = PERMIT_DETAILS_LINK + tail;
-                jsExecutor.executeScript("window.open('" + fullURL + "', '_blank');");
+                String fullUrl = PERMIT_DETAILS_LINK + tail;
+                log.info("Opening URL: {}", fullUrl);
+                jsExecutor.executeScript("window.open('" + fullUrl + "', '_blank');");
             }
         }
+
         List<String> tabs = new ArrayList<>(driver.getWindowHandles());
 
         for (int i = 1; i < tabs.size(); i++) {
@@ -61,11 +77,12 @@ public class CalabasasPageScraper {
             try {
                 WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+                log.info("Scraping data from tab {}");
 
                 String data = dataExtractor.extractRecords(null, driver, null);
                 processedRecords.add(data);
             } catch (Exception e) {
-                System.out.println("Error scraping tab: " + e.getMessage());
+                log.error("Error scraping tab: {}", e.getMessage(), e);
             } finally {
                 jsExecutor.executeScript("window.close();");
             }
@@ -74,17 +91,21 @@ public class CalabasasPageScraper {
         return processedRecords;
     }
 
-
     private String fetchLinksTailsFromRecords(WebElement record) {
-        WebElement linkElement = record.findElement(By.tagName("a"));
-        String onclickValue = linkElement.getAttribute("onclick");
+        try {
+            WebElement linkElement = record.findElement(By.tagName("a"));
+            String onclickValue = linkElement.getAttribute("onclick");
 
-        if (onclickValue != null && onclickValue.contains(LINK_TAIL)) {
-            String detailPart = onclickValue.split(LINK_TAIL)[1];
-            detailPart = detailPart.split("'")[0];
-            return detailPart;
-        } else {
-            System.out.println("Link was not found in record: " + record);
+            if (onclickValue != null && onclickValue.contains(LINK_TAIL)) {
+                String detailPart = onclickValue.split(LINK_TAIL)[1];
+                detailPart = detailPart.split("'")[0];
+                return detailPart;
+            } else {
+                log.warn("Link was not found in record: {}", record);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error while fetching link tail: {}", e.getMessage(), e);
             return null;
         }
     }

@@ -1,30 +1,32 @@
 package scraper.app.service.calabasas;
 
-import lombok.RequiredArgsConstructor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import scraper.app.config.ThreadPoolManager;
-import scraper.app.model.FilterDate;
-import scraper.app.service.ScraperService;
-import scraper.app.storage.DataStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import lombok.RequiredArgsConstructor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import scraper.app.config.ThreadPoolManager;
+import scraper.app.model.FilterDate;
+import scraper.app.service.ScraperService;
 
 @RequiredArgsConstructor
 public class CalabasasScraperService implements ScraperService {
+    private static final Logger log = LoggerFactory.getLogger(CalabasasScraperService.class);
     private final CalabasasPageScraper pageScraper;
     private final CalabasasPageNavigator pageRecordNavigator;
 
     @Override
     public List<String> scrape(String url, int pages, FilterDate filterDate,
                                ThreadPoolManager threadPoolManager) {
-        List<String> strings = ScraperService.super.scrape(url, pages, filterDate, threadPoolManager);
-        new DataStorage().saveLogToCsv(
-                "Total records found for the Calabasas city website: "
-                        + strings.size());
+        List<String> strings = ScraperService.super
+                .scrape(url, pages, filterDate, threadPoolManager);
+        log.info("Total records found for the Calabasas city website: {}",
+                strings.size());
         return strings;
     }
 

@@ -72,9 +72,7 @@ public class HendersonDataExtractor implements DataExtractor {
     private void appendRecordData(
             StringBuilder result, String label, WebElement record, String xpath, WebDriver driver) {
         try {
-            new WebDriverWait(driver, TIMEOUT).until(
-                    webDriver -> ((JavascriptExecutor) webDriver)
-                            .executeScript("return document.readyState").equals("complete"));
+            waitUntilPageIsLoaded(driver);
             String value = record.findElement(By.xpath(xpath)).getText();
             result.append(label).append(": ").append(value.isEmpty()
                     ? EMPTY_MESSAGE : value).append(NEW_LINE);
@@ -136,5 +134,11 @@ public class HendersonDataExtractor implements DataExtractor {
             rowData.add(header + ": " + columnText + NEW_LINE);
         }
         return rowData;
+    }
+
+    private void waitUntilPageIsLoaded(WebDriver driver) {
+        new WebDriverWait(driver, TIMEOUT).until(
+                webDriver -> ((JavascriptExecutor) webDriver)
+                        .executeScript("return document.readyState").equals("complete"));
     }
 }

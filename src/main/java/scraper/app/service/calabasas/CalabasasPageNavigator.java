@@ -14,17 +14,17 @@ import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 
 public class CalabasasPageNavigator implements RecordNavigator {
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
     public static final String OVERLAY_ID = "overlay";
     public static final String OVERLAY_CLASS = ".overlay-class";
     private static final String SEARCH_BUTTON_ID = "Search";
     private static final String SEARCH_SELECTOR_ID = "Module";
     private static final String PERMIT_OPTION_ID = "Permits Only";
     private static final String ISSUED_DATE_FIELD_ID = "IssuedOn.Display";
-    private static final String DATE_OPTION_TAG = "//div[contains(@class,"
-            + " 'br-datepicker-presets-selections')]";
-    public static final String NEXT_PAGE_BUTTON = "//li/a[contains(@onclick,"
-            + " 'ApplicationSearchAdvancedResults.gotoPage";
+    private static final String DATE_OPTION_TAG
+            = "//div[contains(@class, 'br-datepicker-presets-selections')]";
+    private static final String NEXT_PAGE_BUTTON
+            = "//li/a[contains(@onclick, 'ApplicationSearchAdvancedResults.gotoPage";
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
     @Override
     public void clickSearchButton(WebDriver driver) {
@@ -60,7 +60,8 @@ public class CalabasasPageNavigator implements RecordNavigator {
             scrollIntoView(driver, field);
             wait.until(ExpectedConditions.elementToBeClickable(field)).click();
 
-            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(OVERLAY_CLASS)));
+            wait.until(ExpectedConditions
+                    .invisibilityOfElementLocated(By.cssSelector(OVERLAY_CLASS)));
 
             WebElement container = wait.until(ExpectedConditions
                     .visibilityOfElementLocated(By.xpath(DATE_OPTION_TAG)));
@@ -72,9 +73,11 @@ public class CalabasasPageNavigator implements RecordNavigator {
                 refreshIfStale(driver, dateOption, By.xpath(dateXPath));
                 scrollIntoView(driver, dateOption);
 
-                wait.until(ExpectedConditions.elementToBeClickable(dateOption)).click();
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("arguments[0].click();", dateOption);
+
             }
-                clickSearchButton(driver);
+            clickSearchButton(driver);
 
         } catch (Exception e) {
             throw new RuntimeException("Error applying filtration: " + e.getMessage());
@@ -116,8 +119,8 @@ public class CalabasasPageNavigator implements RecordNavigator {
         while (!clicked && attempts < 3) {
             try {
                 String pageButtonXPath = NEXT_PAGE_BUTTON + "(" + pageIndex + ")')]";
-                WebElement nextPageButton = new WebDriverWait(driver, TIMEOUT)
-                        .until(ExpectedConditions.presenceOfElementLocated(By.xpath(pageButtonXPath)));
+                WebElement nextPageButton = new WebDriverWait(driver, TIMEOUT).until(
+                        ExpectedConditions.presenceOfElementLocated(By.xpath(pageButtonXPath)));
 
                 if (isElementStale(nextPageButton)) {
                     nextPageButton = driver.findElement(By.xpath(pageButtonXPath));
@@ -126,7 +129,8 @@ public class CalabasasPageNavigator implements RecordNavigator {
                 Thread.sleep(500);
                 nextPageButton.click();
                 clicked = true;
-                new WebDriverWait(driver, TIMEOUT).until(ExpectedConditions.stalenessOf(nextPageButton));
+                new WebDriverWait(driver, TIMEOUT)
+                        .until(ExpectedConditions.stalenessOf(nextPageButton));
             } catch (StaleElementReferenceException | ElementClickInterceptedException e) {
                 attempts++;
             } catch (Exception e) {

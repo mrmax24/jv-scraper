@@ -8,9 +8,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
-import scraper.app.storage.DataStorage;
+import scraper.app.service.calabasas.CalabasasScraperService;
 
 public class HendersonPageNavigator implements RecordNavigator {
     public static final String OVERLAY_ID = "overlay";
@@ -22,6 +24,8 @@ public class HendersonPageNavigator implements RecordNavigator {
     private static final String FROM_DATE_FIELD_ID = "IssueDateFrom";
     private static final String TO_DATE_FIELD_ID = "IssueDateTo";
     private static final Duration TIMEOUT = Duration.ofSeconds(60);
+    private static final Logger log =
+            LoggerFactory.getLogger(CalabasasScraperService.class);
 
     @Override
     public void clickSearchButton(WebDriver driver) {
@@ -61,8 +65,7 @@ public class HendersonPageNavigator implements RecordNavigator {
             toDateInput.clear();
             toDateInput.sendKeys(toDate);
 
-            new DataStorage().saveLogToCsv("Date filtration applied by date : "
-                    + fromDate + " to " + toDate);
+            log.info("Date filtration applied by date : {} to {}", fromDate, toDate);
 
         } catch (Exception e) {
             System.out.println("Error applying filtration: " + e.getMessage());
