@@ -12,6 +12,7 @@ import scraper.app.service.DataExtractor;
 
 @RequiredArgsConstructor
 public class CalabasasDataExtractor implements DataExtractor {
+    private static final Duration TIMEOUT = Duration.ofSeconds(20);
     private static final String RECORD_TITLE_TAG
             = ".//td[contains(@aria-label, 'Record number')]"
             + "//span[contains(@class, 'm-r-sm')]";
@@ -112,7 +113,7 @@ public class CalabasasDataExtractor implements DataExtractor {
     }
 
     private void waitForPageToLoad(WebDriver driver) {
-        new WebDriverWait(driver, Duration.ofSeconds(60)).until(
+        new WebDriverWait(driver, TIMEOUT).until(
                 webDriver -> ((JavascriptExecutor) webDriver)
                         .executeScript("return document.readyState").equals("complete")
         );

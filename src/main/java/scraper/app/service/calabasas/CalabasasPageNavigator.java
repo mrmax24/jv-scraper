@@ -10,12 +10,16 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 
 public class CalabasasPageNavigator implements RecordNavigator {
-    public static final String OVERLAY_ID = "overlay";
-    public static final String OVERLAY_CLASS = ".overlay-class";
+    private static final Duration TIMEOUT = Duration.ofSeconds(20);
+    private static final Logger log = LoggerFactory.getLogger(CalabasasScraperService.class);
+    private static final String OVERLAY_ID = "overlay";
+    private static final String OVERLAY_CLASS = ".overlay-class";
     private static final String SEARCH_BUTTON_ID = "Search";
     private static final String SEARCH_SELECTOR_ID = "Module";
     private static final String PERMIT_OPTION_ID = "Permits Only";
@@ -24,7 +28,6 @@ public class CalabasasPageNavigator implements RecordNavigator {
             = "//div[contains(@class, 'br-datepicker-presets-selections')]";
     private static final String NEXT_PAGE_BUTTON
             = "//li/a[contains(@onclick, 'ApplicationSearchAdvancedResults.gotoPage";
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
 
     @Override
     public void clickSearchButton(WebDriver driver) {
@@ -73,14 +76,13 @@ public class CalabasasPageNavigator implements RecordNavigator {
                 refreshIfStale(driver, dateOption, By.xpath(dateXPath));
                 scrollIntoView(driver, dateOption);
 
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("arguments[0].click();", dateOption);
+                clickOnArgument(driver, dateOption);
 
             }
             clickSearchButton(driver);
 
         } catch (Exception e) {
-            throw new RuntimeException("Error applying filtration: " + e.getMessage());
+            log.error("Error applying filtration: {}", e.getMessage());
         }
     }
 
@@ -92,7 +94,7 @@ public class CalabasasPageNavigator implements RecordNavigator {
             scrollIntoView(driver, permitLink);
             permitLink.click();
         } catch (Exception e) {
-            throw new RuntimeException("Error navigating to record link: " + e.getMessage());
+            log.error("Error navigating to record link: {}", e.getMessage());
         }
     }
 
@@ -108,7 +110,7 @@ public class CalabasasPageNavigator implements RecordNavigator {
 
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY_ID)));
         } catch (Exception e) {
-            throw new RuntimeException("Error selecting 'Permit' option: " + e.getMessage());
+            log.error("Error selecting 'Permit' option: {}", e.getMessage());
         }
     }
 
@@ -126,7 +128,7 @@ public class CalabasasPageNavigator implements RecordNavigator {
                     nextPageButton = driver.findElement(By.xpath(pageButtonXPath));
                 }
                 scrollIntoView(driver, nextPageButton);
-                Thread.sleep(500);
+                Thread.sleep(100);
                 nextPageButton.click();
                 clicked = true;
                 new WebDriverWait(driver, TIMEOUT)
@@ -134,12 +136,12 @@ public class CalabasasPageNavigator implements RecordNavigator {
             } catch (StaleElementReferenceException | ElementClickInterceptedException e) {
                 attempts++;
             } catch (Exception e) {
-                System.err.println("Error clicking next page button: " + e.getMessage());
+                log.error("Error clicking next page button: {}", e.getMessage());
                 break;
             }
         }
         if (!clicked) {
-            throw new RuntimeException("Failed to click next page button after 3 attempts");
+            log.error("Failed to click next page button after 3 attempts");
         }
     }
 

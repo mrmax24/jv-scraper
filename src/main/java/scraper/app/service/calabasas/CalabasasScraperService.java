@@ -57,7 +57,8 @@ public class CalabasasScraperService implements ScraperService {
                 if (records.isEmpty()) {
                     return null;
                 }
-                List<String> results = pageScraper.openLinksFromRecords(records, driver);
+                List<String> results = pageScraper
+                        .openLinksFromRecords(records, driver, pageNumber);
                 allProcessedPermits.addAll(results);
                 System.out.println("Successfully scraped page " + pageNumber);
             } catch (Exception e) {

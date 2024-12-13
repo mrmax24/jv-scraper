@@ -4,8 +4,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.FileAppender;
+import java.io.File;
 import org.slf4j.LoggerFactory;
 
 public class LogConfig {
@@ -13,23 +15,29 @@ public class LogConfig {
     public static void configureLogging() {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 
-        ConsoleAppender consoleAppender = new ConsoleAppender();
+        File logDir = new File("logs");
+        if (!logDir.exists()) {
+            logDir.mkdirs();
+        }
+
+        ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
         PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n");
+        encoder.setPattern("%-5level %logger{36} - %msg%n");
         encoder.setContext(context);
         encoder.start();
         consoleAppender.setEncoder(encoder);
+        consoleAppender.setContext(context);
         consoleAppender.start();
 
-        FileAppender fileAppender = new FileAppender();
+        FileAppender<ILoggingEvent> fileAppender = new FileAppender<>();
         fileAppender.setFile("logs/scraper.log");
         fileAppender.setEncoder(encoder);
         fileAppender.setContext(context);
         fileAppender.start();
 
-        Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(consoleAppender);
-        rootLogger.addAppender(fileAppender);
+        Logger consoleLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
+
+        consoleLogger.setLevel(Level.INFO);
+        consoleLogger.addAppender(fileAppender);
     }
 }

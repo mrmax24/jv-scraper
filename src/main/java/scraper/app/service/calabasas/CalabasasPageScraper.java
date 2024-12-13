@@ -29,14 +29,13 @@ public class CalabasasPageScraper {
     private final DataExtractor dataExtractor;
 
     void applyFilters(WebDriver driver, FilterDate filterDate) {
-        log.info("Applying filters with date: {}", filterDate);
+        log.info("Applying filters with date: {}", filterDate.getIssueDate());
         try {
             calabasasPageNavigator.applyFiltration(driver, filterDate);
             calabasasPageNavigator.clickSearchButton(driver);
             log.info("Filters applied successfully");
         } catch (Exception e) {
             log.error("Error while applying filters: {}", e.getMessage(), e);
-            throw e;
         }
     }
 
@@ -50,11 +49,11 @@ public class CalabasasPageScraper {
             return records;
         } catch (Exception e) {
             log.error("Failed to fetch records on page {}: {}", pageNumber, e.getMessage(), e);
-            throw e;
+            return null;
         }
     }
 
-    List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver) {
+    List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver, int pageNumber) {
         log.info("Opening links from records");
         List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
@@ -63,13 +62,12 @@ public class CalabasasPageScraper {
             String tail = fetchLinksTailsFromRecords(record);
             if (tail != null) {
                 String fullUrl = PERMIT_DETAILS_LINK + tail;
-                log.info("Opening URL: {}", fullUrl);
                 jsExecutor.executeScript("window.open('" + fullUrl + "', '_blank');");
             }
         }
 
         List<String> tabs = new ArrayList<>(driver.getWindowHandles());
-
+        log.info("Scraping data from tabs");
         for (int i = 1; i < tabs.size(); i++) {
             String tabHandle = tabs.get(i);
             driver.switchTo().window(tabHandle);
@@ -77,7 +75,6 @@ public class CalabasasPageScraper {
             try {
                 WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-                log.info("Scraping data from tab {}");
 
                 String data = dataExtractor.extractRecords(null, driver, null);
                 processedRecords.add(data);
@@ -88,6 +85,7 @@ public class CalabasasPageScraper {
             }
         }
         driver.switchTo().window(tabs.get(0));
+        log.info("Opened {} links from page {}", processedRecords.size(), pageNumber);
         return processedRecords;
     }
 

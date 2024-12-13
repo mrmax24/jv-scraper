@@ -1,32 +1,33 @@
-2024-12-13 15:38:45 [main] INFO  i.g.bonigarcia.wdm.WebDriverManager - Using chromedriver 131.0.6778.108 (resolved driver for Chrome 131)
-2024-12-13 15:38:46 [main] INFO  i.g.bonigarcia.wdm.WebDriverManager - Exporting webdriver.chrome.driver as C:\Users\Code&Care0157\.cache\selenium\chromedriver\win64\131.0.6778.108\chromedriver.exe
-2024-12-13 15:38:47 [pool-4-thread-1] INFO  scraper.app.Main - Starting Calabasas scraping task
-2024-12-13 15:38:49 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Applying filters with date: scraper.app.model.FilterDate@34f38d98
-2024-12-13 15:38:54 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Filters applied successfully
-2024-12-13 15:38:54 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Fetching records from page 1
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Fetched 10 records from page 1
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening links from records
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/cdc16ba8-4c68-4aa2-9bdd-b226011887c9
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/f2defa46-c995-467d-b8b5-b227015b7b1c
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/e14510f3-8b2d-470f-85a0-b23a01494fb2
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/ca34b038-cc04-4263-9505-b23c013f7e3e
-2024-12-13 15:38:55 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/c34d668d-571e-4c01-a71d-b2410130e1f7
-2024-12-13 15:38:56 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/507b90d9-8071-41e9-8e6f-b2410161b137
-2024-12-13 15:38:58 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/157a1ce3-14b9-45bb-a8b5-b243010f386d
-2024-12-13 15:38:58 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/df8a00ae-9f6b-4822-9acc-b2440013ad03
-2024-12-13 15:38:59 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/8a3b49c6-c870-4c66-989a-b24400c4581a
-2024-12-13 15:39:07 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Opening URL: https://ci-calabasas-ca.smartgovcommunity.com/PermittingPublic/PermitLandingPagePublic/Index/b92aba3c-6a3a-457a-96de-b186011a5f8c
-2024-12-13 15:39:14 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:14 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:15 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:16 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:16 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:17 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:18 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:18 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:19 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:19 [pool-3-thread-1] INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tab {}
-2024-12-13 15:39:20 [pool-4-thread-1] INFO  s.a.s.c.CalabasasScraperService - Total records found for the Calabasas city website: 10
-2024-12-13 15:39:20 [pool-4-thread-1] INFO  scraper.app.Main - Calabasas scraping task completed successfully
-2024-12-13 15:39:20 [main] INFO  scraper.app.Main - 
-Total scraping time: 32
+WARN  i.g.b.wdm.versions.VersionDetector - Error reading commands.properties, using local instead
+INFO  i.g.bonigarcia.wdm.WebDriverManager - Using chromedriver 131.0.6778.108 (resolved driver for Chrome 131)
+INFO  i.g.bonigarcia.wdm.WebDriverManager - Exporting webdriver.chrome.driver as C:\Users\Code&Care0157\.cache\selenium\chromedriver\win64\131.0.6778.108\chromedriver.exe
+INFO  s.a.s.c.CalabasasScraperService - Date filtration applied by date : 09/01/2024 to 09/30/2024
+INFO  s.a.s.c.CalabasasScraperService - Total records found for the Henderson city website: 10
+INFO  scraper.app.Main - Henderson scraping task completed successfully
+INFO  scraper.app.Main - Starting Calabasas scraping task
+INFO  s.a.s.calabasas.CalabasasPageScraper - Applying filters with date: Last 30 Days
+INFO  i.g.bonigarcia.wdm.WebDriverManager - Using chromedriver 131.0.6778.108 (resolved driver for Chrome 131)
+INFO  i.g.bonigarcia.wdm.WebDriverManager - Exporting webdriver.chrome.driver as C:\Users\Code&Care0157\.cache\selenium\chromedriver\win64\131.0.6778.108\chromedriver.exe
+INFO  scraper.app.Main - Starting Calabasas scraping task
+INFO  s.a.s.calabasas.CalabasasPageScraper - Applying filters with date: Last 30 Days
+INFO  s.a.s.calabasas.CalabasasPageScraper - Filters applied successfully
+INFO  s.a.s.calabasas.CalabasasPageScraper - Applying filters with date: Last 30 Days
+INFO  s.a.s.calabasas.CalabasasPageScraper - Filters applied successfully
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetching records from page 1
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetched 10 records from page 1
+INFO  s.a.s.calabasas.CalabasasPageScraper - Opening links from records
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetching records from page 2
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetched 10 records from page 2
+INFO  s.a.s.calabasas.CalabasasPageScraper - Opening links from records
+INFO  s.a.s.c.CalabasasScraperService - Date filtration applied by date : 09/01/2024 to 09/30/2024
+INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tabs
+INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tabs
+INFO  s.a.s.c.CalabasasScraperService - Date filtration applied by date : 09/01/2024 to 09/30/2024
+INFO  s.a.s.calabasas.CalabasasPageScraper - Opened 10 links from page 1
+INFO  s.a.s.calabasas.CalabasasPageScraper - Opened 10 links from page 2
+INFO  s.a.s.c.CalabasasScraperService - Total records found for the Calabasas city website: 20
+INFO  scraper.app.Main - Calabasas scraping task completed successfully
+INFO  s.a.s.c.CalabasasScraperService - Total records found for the Henderson city website: 20
+INFO  scraper.app.Main - Henderson scraping task completed successfully
+INFO  scraper.app.Main - 
+Total scraping time: 134
