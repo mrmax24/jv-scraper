@@ -25,7 +25,7 @@ public class HandersonScraperService implements ScraperService {
                                         ThreadPoolManager threadPoolManager) {
         List<String> strings = ScraperService.super.scrape(
                 url, pages, filterDate, threadPoolManager);
-        log.info("Total records found for the Henderson city website: {}",
+        log.info("Total records scraped for the Henderson city website: {}",
                 strings.size());
         return strings;
     }

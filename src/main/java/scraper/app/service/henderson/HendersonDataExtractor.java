@@ -1,20 +1,24 @@
 package scraper.app.service.henderson;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scraper.app.service.DataExtractor;
+import scraper.app.service.calabasas.CalabasasScraperService;
+import scraper.app.util.WebDriverUtils;
 
 @RequiredArgsConstructor
 public class HendersonDataExtractor implements DataExtractor {
+    private static final Logger log =
+            LoggerFactory.getLogger(CalabasasScraperService.class);
     private static final String NEW_LINE = System.lineSeparator();
     private static final String RAW = "tr";
     private static final String COLUMN = "td";
@@ -35,7 +39,6 @@ public class HendersonDataExtractor implements DataExtractor {
     private static final String FINALIZED_DATE = ".//div[@name='label-FinalizedDate']//span";
     private static final String DISTRICT = "label-PermitDetail-District";
     private static final String CONTACTS_TABLE = "selfServiceTable-Contacts";
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private final HendersonPageNavigator hendersonPageNavigator;
 
     @Override
@@ -64,7 +67,7 @@ public class HendersonDataExtractor implements DataExtractor {
             List<String> additionalData = extractContactData(driver);
             additionalData.forEach(result::append);
         } catch (Exception e) {
-            System.out.println("Error extracting record data: " + e.getMessage());
+            log.error("Error extracting record data: {}", e.getMessage());
         }
         return result.toString();
     }
@@ -72,7 +75,7 @@ public class HendersonDataExtractor implements DataExtractor {
     private void appendRecordData(
             StringBuilder result, String label, WebElement record, String xpath, WebDriver driver) {
         try {
-            waitUntilPageIsLoaded(driver);
+            WebDriverUtils.waitForPageToLoad(driver, WebDriverUtils.TIMEOUT);
             String value = record.findElement(By.xpath(xpath)).getText();
             result.append(label).append(": ").append(value.isEmpty()
                     ? EMPTY_MESSAGE : value).append(NEW_LINE);
@@ -82,35 +85,26 @@ public class HendersonDataExtractor implements DataExtractor {
     }
 
     private WebElement extractDistrict(WebDriver driver) {
-        return new WebDriverWait(driver, TIMEOUT)
+        return new WebDriverWait(driver, WebDriverUtils.TIMEOUT)
                 .until(ExpectedConditions.presenceOfElementLocated(By.id(DISTRICT)))
                 .findElement(By.xpath(PARAGRAPH));
     }
 
     private List<String> extractContactData(WebDriver driver) {
         List<String> result = new ArrayList<>();
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+        WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
 
-        try {
-            WebElement table = wait.until(ExpectedConditions
-                    .presenceOfElementLocated(By.id(CONTACTS_TABLE)));
+        WebElement table = wait.until(ExpectedConditions
+                .presenceOfElementLocated(By.id(CONTACTS_TABLE)));
 
-            List<WebElement> rows = table.findElements(By.tagName(RAW));
-            if (rows.isEmpty()) {
-                throw new RuntimeException("No rows found in the contacts table.");
+        List<WebElement> rows = table.findElements(By.tagName(RAW));
+        List<String> columnHeaders = extractColumnHeaders(rows.get(0));
+
+        for (int i = 1; i < rows.size(); i++) {
+            List<WebElement> columns = rows.get(i).findElements(By.tagName(COLUMN));
+            if (!columns.isEmpty()) {
+                result.addAll(extractRowData(columns, columnHeaders));
             }
-
-            List<String> columnHeaders = extractColumnHeaders(rows.get(0));
-
-            for (int i = 1; i < rows.size(); i++) {
-                List<WebElement> columns = rows.get(i).findElements(By.tagName(COLUMN));
-                if (!columns.isEmpty()) {
-                    result.addAll(extractRowData(columns, columnHeaders));
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Contact data cannot be extracted. "
-                    + "Exception: " + e.getMessage());
         }
         return result;
     }
@@ -134,11 +128,5 @@ public class HendersonDataExtractor implements DataExtractor {
             rowData.add(header + ": " + columnText + NEW_LINE);
         }
         return rowData;
-    }
-
-    private void waitUntilPageIsLoaded(WebDriver driver) {
-        new WebDriverWait(driver, TIMEOUT).until(
-                webDriver -> ((JavascriptExecutor) webDriver)
-                        .executeScript("return document.readyState").equals("complete"));
     }
 }

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import scraper.app.config.ThreadPoolManager;
 import scraper.app.model.FilterDate;
 import scraper.app.service.ScraperService;
+import scraper.app.util.WebDriverUtils;
 
 @RequiredArgsConstructor
 public class CalabasasScraperService implements ScraperService {
@@ -25,7 +26,7 @@ public class CalabasasScraperService implements ScraperService {
                                ThreadPoolManager threadPoolManager) {
         List<String> strings = ScraperService.super
                 .scrape(url, pages, filterDate, threadPoolManager);
-        log.info("Total records found for the Calabasas city website: {}",
+        log.info("Total records fetched for the Calabasas city website: {}",
                 strings.size());
         return strings;
     }
@@ -52,18 +53,18 @@ public class CalabasasScraperService implements ScraperService {
                 driver.get(url);
                 pageScraper.applyFilters(driver, filterDate);
                 navigateToPage(driver, pageNumber);
+                WebDriverUtils.waitForPageToLoad(driver, WebDriverUtils.TIMEOUT);
                 List<WebElement> records = pageScraper.fetchRecords(driver, pageNumber);
 
                 if (records.isEmpty()) {
-                    return null;
+                    log.info("No records were found on Calabasas website");
                 }
                 List<String> results = pageScraper
                         .openLinksFromRecords(records, driver, pageNumber);
                 allProcessedPermits.addAll(results);
-                System.out.println("Successfully scraped page " + pageNumber);
+                log.info("Successfully scraped Calabasas page {}", pageNumber);
             } catch (Exception e) {
-                throw new RuntimeException(
-                        "Error scraping page " + pageNumber + ": " + e.getMessage());
+                log.error("Error scraping Calabasas page {}: {}", pageNumber, e.getMessage());
             } finally {
                 driver.quit();
             }

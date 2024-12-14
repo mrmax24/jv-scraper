@@ -1,24 +1,21 @@
 package scraper.app.service.calabasas;
 
-import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import scraper.app.service.DataExtractor;
+import scraper.app.util.WebDriverUtils;
 
 @RequiredArgsConstructor
 public class CalabasasDataExtractor implements DataExtractor {
-    private static final Duration TIMEOUT = Duration.ofSeconds(20);
     private static final String RECORD_TITLE_TAG
             = ".//td[contains(@aria-label, 'Record number')]"
             + "//span[contains(@class, 'm-r-sm')]";
     private static final String DESCRIPTION_XPATH
             = "//td[@class='project-header-title p-b']";
-    private static final String RECORD_NUMBER_STATUS_XPATH = "//td[@class"
+    private static final String STATUS_XPATH = "//td[@class"
             + "='project-header-field-label' and text()='Record Number']"
             + "/following-sibling::td//div[contains(@class, 'project-header-status-badge')]";
     private static final String FEES_LABEL_XPATH
@@ -35,17 +32,15 @@ public class CalabasasDataExtractor implements DataExtractor {
             + "/span[contains(translate(text(), 'abcdefghijklmnopqrstuvwxyz', "
             + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 'CALABASAS')]";
     private static final String PARCEL_LABEL_XPATH
-            = ".//td[@class='project-section-field-value']"
-            + "/span[contains(text(), 'Parcel')]";
-    private static final String PARCEL_XPATH
+            = ".//td[@class='project-section-field-value']/span[contains(text(), 'Parcel')]";
+    private static final String PARCEL_VALUE_XPATH
             = ".//td[@class='project-section-field-value']/span//a";
-    private static final String DATES_XPATH
-            = "//table[@class='project-section-table-right']//tr";
+    private static final String DATES_XPATH = "//table[@class='project-section-table-right']//tr";
     private static final String NEW_LINE = System.lineSeparator();
 
     @Override
     public String extractRecords(WebElement record, WebDriver driver, WebElement link) {
-        waitForPageToLoad(driver);
+        WebDriverUtils.waitForPageToLoad(driver, WebDriverUtils.TIMEOUT);
         return extractMainData(driver)
                 + extractLocationData(driver)
                 + extractDatesData(driver);
@@ -55,15 +50,15 @@ public class CalabasasDataExtractor implements DataExtractor {
         StringBuilder builder = new StringBuilder();
         String title = getElementText(driver, By.xpath(RECORD_TITLE_TAG));
         String description = getElementText(driver, By.xpath(DESCRIPTION_XPATH));
-        String status = getElementText(driver, By.xpath(RECORD_NUMBER_STATUS_XPATH));
+        String status = getElementText(driver, By.xpath(STATUS_XPATH));
         String feesLabel = getElementText(driver, By.xpath(FEES_LABEL_XPATH));
         String currencyUnit = getElementText(driver, By.xpath(UNIT_XPATH));
         String dollars = getElementText(driver, By.xpath(DOLLARS_XPATH));
         String cents = getElementText(driver, By.xpath(CENTS_XPATH));
 
         builder.append(title).append(NEW_LINE)
-                .append(description).append(NEW_LINE)
-                .append(status).append(NEW_LINE)
+                .append(description).append(": ")
+                .append("Status: ").append(status).append(NEW_LINE)
                 .append(feesLabel).append(": ")
                 .append(currencyUnit)
                 .append(dollars).append(".").append(cents).append(NEW_LINE);
@@ -76,7 +71,7 @@ public class CalabasasDataExtractor implements DataExtractor {
         String firstLocation = getElementText(driver, By.xpath(FIRST_LOCATION_XPATH));
         String secondLocation = getElementText(driver, By.xpath(SECOND_LOCATION_XPATH));
         String parcelLabel = getElementText(driver, By.xpath(PARCEL_LABEL_XPATH));
-        String parcelValue = getElementText(driver, By.xpath(PARCEL_XPATH));
+        String parcelValue = getElementText(driver, By.xpath(PARCEL_VALUE_XPATH));
 
         builder.append(locationLabel).append(": ")
                 .append(firstLocation).append(", ")
@@ -111,12 +106,4 @@ public class CalabasasDataExtractor implements DataExtractor {
         WebElement element = driver.findElement(locator);
         return element != null ? element.getText() : "N/A";
     }
-
-    private void waitForPageToLoad(WebDriver driver) {
-        new WebDriverWait(driver, TIMEOUT).until(
-                webDriver -> ((JavascriptExecutor) webDriver)
-                        .executeScript("return document.readyState").equals("complete")
-        );
-    }
-
 }

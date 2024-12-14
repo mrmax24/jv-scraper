@@ -1,6 +1,5 @@
 package scraper.app.service.henderson;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -10,19 +9,24 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scraper.app.config.WebDriverProvider;
 import scraper.app.model.FilterDate;
 import scraper.app.service.DataExtractor;
 import scraper.app.service.PageScraper;
+import scraper.app.service.calabasas.CalabasasScraperService;
+import scraper.app.util.WebDriverUtils;
 
 @RequiredArgsConstructor
 public class HendersonPageScraper implements PageScraper {
-    public static final String OVERLAY = "overlay";
+    private static final Logger log =
+            LoggerFactory.getLogger(CalabasasScraperService.class);
+    private static final String OVERLAY = "overlay";
     private static final String RECORD_PATH = "//div[contains(@id, 'entityRecordDiv')]";
     private static final String PERMIT_DETAILS_LINK = ".//a[contains(@href, '#/permit/')]";
     private static final String QUERY_PARAMS = "?m=1&fm=1&ps=10&pn=";
     private static final int ATTEMPTS_NUMBER = 3;
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
     private final WebDriverProvider webDriverProvider;
     private final HendersonPageNavigator hendersonPageNavigator;
     private final DataExtractor dataExtractor;
@@ -42,7 +46,7 @@ public class HendersonPageScraper implements PageScraper {
                 processRecords(driver, records, processedPermits, pageNumber);
                 break;
             } catch (Exception e) {
-                System.out.println("Error scraping page " + pageNumber + ": " + e.getMessage());
+                log.info("Error scraping Henderson page {}: {}", pageNumber, e.getMessage());
                 attempts--;
             } finally {
                 driver.quit();
@@ -56,31 +60,44 @@ public class HendersonPageScraper implements PageScraper {
         String pageUrl = url + QUERY_PARAMS + pageNumber;
         driver.get(pageUrl);
 
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+        WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY)));
         return driver;
     }
 
     private void applyFilters(WebDriver driver, FilterDate filterDate) {
-        hendersonPageNavigator.applyFiltration(driver, filterDate);
-        hendersonPageNavigator.clickSearchButton(driver);
+        log.info("Applying filters on Henderson website with date: {}",
+                filterDate.getIssueDate());
+        try {
+            hendersonPageNavigator.applyFiltration(driver, filterDate);
+            hendersonPageNavigator.clickSearchButton(driver);
+            log.info("Henderson filters applied successfully");
+        } catch (Exception e) {
+            log.error("Error while applying filters on Henderson website: {}",
+                    e.getMessage(), e);
+        }
     }
 
     private List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-        wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(RECORD_PATH)));
+        log.info("Fetching records from Henderson  page {}", pageNumber);
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
+            wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(RECORD_PATH)));
 
-        List<WebElement> records = driver.findElements(By.xpath(RECORD_PATH));
-        if (records.isEmpty()) {
-            throw new IllegalStateException("No records found on page " + pageNumber);
+            List<WebElement> records = driver.findElements(By.xpath(RECORD_PATH));
+            log.info("Fetched {} records from Henderson page {}", records.size(), pageNumber);
+            return records;
+        } catch (Exception e) {
+            log.error("Failed to fetch records on Henderson page {}: {}",
+                    pageNumber, e.getMessage(), e);
         }
-        return records;
+        return null;
     }
 
     private void processRecords(WebDriver driver, List<WebElement> records,
                                 List<String> processedPermits, int pageNumber) {
+        log.error("Start scraping Henderson website records");
         String originalWindow = driver.getWindowHandle();
-
         for (WebElement record : records) {
             try {
                 WebElement link = getPermitLink(record);
@@ -88,11 +105,11 @@ public class HendersonPageScraper implements PageScraper {
                     String result = dataExtractor.extractRecords(record, driver, link);
                     processedPermits.add(result);
                 } else {
-                    System.out.println("Permit link not found in record on page " + pageNumber);
+                    log.info("Permit link not found in record on Henderson page {}", pageNumber);
                 }
             } catch (Exception e) {
-                System.out.println("Error extracting record on page "
-                        + pageNumber + ": " + e.getMessage());
+                log.info("Error extracting record on Henderson page {}: {}",
+                        pageNumber, e.getMessage());
             } finally {
                 closeAdditionalTabs(driver, originalWindow);
             }

@@ -5,9 +5,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import scraper.app.service.calabasas.CalabasasScraperService;
 
 public class ThreadPoolManager {
-    public static final int TIMEOUT = 60;
+    private static final Logger log =
+            LoggerFactory.getLogger(CalabasasScraperService.class);
+    private static final int TIMEOUT = 60;
     private final ExecutorService executorService;
 
     public ThreadPoolManager(int poolSize) {
@@ -23,17 +28,11 @@ public class ThreadPoolManager {
         }
     }
 
-    public void submitRunnables(List<Runnable> tasks) {
-        for (Runnable task : tasks) {
-            executorService.submit(task);
-        }
-    }
-
     public void shutdown() {
         executorService.shutdown();
         try {
             if (!executorService.awaitTermination(TIMEOUT, TimeUnit.SECONDS)) {
-                System.out.println("Forcing shutdown...");
+                log.info("Forcing shutdown...");
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {

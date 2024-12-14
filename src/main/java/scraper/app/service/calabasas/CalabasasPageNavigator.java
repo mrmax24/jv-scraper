@@ -1,9 +1,7 @@
 package scraper.app.service.calabasas;
 
-import java.time.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -14,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
+import scraper.app.util.WebDriverUtils;
 
 public class CalabasasPageNavigator implements RecordNavigator {
-    private static final Duration TIMEOUT = Duration.ofSeconds(20);
     private static final Logger log = LoggerFactory.getLogger(CalabasasScraperService.class);
     private static final String OVERLAY_ID = "overlay";
     private static final String OVERLAY_CLASS = ".overlay-class";
@@ -32,19 +30,19 @@ public class CalabasasPageNavigator implements RecordNavigator {
     @Override
     public void clickSearchButton(WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
             By searchButtonLocator = By.id(SEARCH_BUTTON_ID);
 
             WebElement searchButton = wait.until(
                     ExpectedConditions.presenceOfElementLocated(searchButtonLocator));
-            searchButton = refreshIfStale(driver, searchButton, searchButtonLocator);
+            searchButton = WebDriverUtils.refreshIfStale(driver, searchButton, searchButtonLocator);
 
-            scrollIntoView(driver, searchButton);
-            clickOnArgument(driver, searchButton);
+            WebDriverUtils.scrollIntoView(driver, searchButton);
+            WebDriverUtils.clickOnArgument(driver, searchButton);
         } catch (StaleElementReferenceException e) {
             clickSearchButton(driver);
         } catch (Exception e) {
-            throw new RuntimeException("Error clicking search button: " + e.getMessage());
+            log.error("Error clicking search button: {}", e.getMessage());
         }
     }
 
@@ -53,14 +51,14 @@ public class CalabasasPageNavigator implements RecordNavigator {
         clickSearchOption(driver);
 
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
             String issuedDate = filterDate.getIssueDate();
 
             WebElement field = wait.until(ExpectedConditions
                     .presenceOfElementLocated(By.id(ISSUED_DATE_FIELD_ID)));
-            refreshIfStale(driver, field, By.id(ISSUED_DATE_FIELD_ID));
+            WebDriverUtils.refreshIfStale(driver, field, By.id(ISSUED_DATE_FIELD_ID));
 
-            scrollIntoView(driver, field);
+            WebDriverUtils.scrollIntoView(driver, field);
             wait.until(ExpectedConditions.elementToBeClickable(field)).click();
 
             wait.until(ExpectedConditions
@@ -73,10 +71,10 @@ public class CalabasasPageNavigator implements RecordNavigator {
                 String dateXPath = ".//span[text()='" + issuedDate + "']";
                 WebElement dateOption = container.findElement(By.xpath(dateXPath));
 
-                refreshIfStale(driver, dateOption, By.xpath(dateXPath));
-                scrollIntoView(driver, dateOption);
+                WebDriverUtils.refreshIfStale(driver, dateOption, By.xpath(dateXPath));
+                WebDriverUtils.scrollIntoView(driver, dateOption);
 
-                clickOnArgument(driver, dateOption);
+                WebDriverUtils.clickOnArgument(driver, dateOption);
 
             }
             clickSearchButton(driver);
@@ -88,10 +86,10 @@ public class CalabasasPageNavigator implements RecordNavigator {
 
     @Override
     public void findAndOpenLinkFromRecord(WebDriver driver, WebElement link) {
-        WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+        WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
         try {
             WebElement permitLink = wait.until(ExpectedConditions.elementToBeClickable(link));
-            scrollIntoView(driver, permitLink);
+            WebDriverUtils.scrollIntoView(driver, permitLink);
             permitLink.click();
         } catch (Exception e) {
             log.error("Error navigating to record link: {}", e.getMessage());
@@ -100,7 +98,7 @@ public class CalabasasPageNavigator implements RecordNavigator {
 
     public void clickSearchOption(WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
 
             WebElement dropdownElement = wait.until(ExpectedConditions
                     .presenceOfElementLocated(By.id(SEARCH_SELECTOR_ID)));
@@ -121,17 +119,17 @@ public class CalabasasPageNavigator implements RecordNavigator {
         while (!clicked && attempts < 3) {
             try {
                 String pageButtonXPath = NEXT_PAGE_BUTTON + "(" + pageIndex + ")')]";
-                WebElement nextPageButton = new WebDriverWait(driver, TIMEOUT).until(
+                WebElement nextPageButton = new WebDriverWait(driver, WebDriverUtils.TIMEOUT).until(
                         ExpectedConditions.presenceOfElementLocated(By.xpath(pageButtonXPath)));
 
-                if (isElementStale(nextPageButton)) {
+                if (WebDriverUtils.isElementStale(nextPageButton)) {
                     nextPageButton = driver.findElement(By.xpath(pageButtonXPath));
                 }
-                scrollIntoView(driver, nextPageButton);
+                WebDriverUtils.scrollIntoView(driver, nextPageButton);
                 Thread.sleep(100);
                 nextPageButton.click();
                 clicked = true;
-                new WebDriverWait(driver, TIMEOUT)
+                new WebDriverWait(driver, WebDriverUtils.TIMEOUT)
                         .until(ExpectedConditions.stalenessOf(nextPageButton));
             } catch (StaleElementReferenceException | ElementClickInterceptedException e) {
                 attempts++;
@@ -142,34 +140,6 @@ public class CalabasasPageNavigator implements RecordNavigator {
         }
         if (!clicked) {
             log.error("Failed to click next page button after 3 attempts");
-        }
-    }
-
-    private boolean isElementStale(WebElement element) {
-        try {
-            element.isDisplayed();
-            return false;
-        } catch (StaleElementReferenceException e) {
-            return true;
-        }
-    }
-
-    private void clickOnArgument(WebDriver driver, WebElement element) {
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].click();", element);
-    }
-
-    private void scrollIntoView(WebDriver driver, WebElement element) {
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView(true);", element);
-    }
-
-    private WebElement refreshIfStale(WebDriver driver, WebElement element, By locator) {
-        try {
-            element.isDisplayed();
-            return element;
-        } catch (StaleElementReferenceException e) {
-            return driver.findElement(locator);
         }
     }
 }

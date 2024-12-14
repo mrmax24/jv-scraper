@@ -48,14 +48,17 @@ public class Main {
     }
 
     private static void runHendersonScrapingTask(Components components) {
-        ScraperController controller = components.scraperController1();
-        controller.startScrapingHendersonPage(HENDERSON_URL, PAGE_NUMBER,
-                FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
-        log.info("Henderson scraping task completed successfully");
+        try {
+            ScraperController controller = components.scraperController1();
+            controller.startScrapingHendersonPage(HENDERSON_URL, PAGE_NUMBER,
+                    FILE_PATH_FOR_HENDERSON, FROM_DATE, TO_DATE);
+            log.info("Henderson scraping task completed successfully");
+        } catch (Exception e) {
+            log.error("Error during Henderson scraping task: {}", e.getMessage(), e);
+        }
     }
 
     private static void runCalabasasScrapingTask(Components components) {
-        log.info("Starting Calabasas scraping task");
         try {
             ScraperController controller = components.scraperController2();
             controller.startScrapingCalabasasPage(CALABASAS_URL, PAGE_NUMBER,

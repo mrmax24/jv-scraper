@@ -1,6 +1,5 @@
 package scraper.app.service.henderson;
 
-import java.time.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import scraper.app.model.FilterDate;
 import scraper.app.service.RecordNavigator;
 import scraper.app.service.calabasas.CalabasasScraperService;
+import scraper.app.util.WebDriverUtils;
 
 public class HendersonPageNavigator implements RecordNavigator {
     public static final String OVERLAY_ID = "overlay";
@@ -23,24 +23,22 @@ public class HendersonPageNavigator implements RecordNavigator {
     private static final String PERMIT_OPTION_ID = "Permit";
     private static final String FROM_DATE_FIELD_ID = "IssueDateFrom";
     private static final String TO_DATE_FIELD_ID = "IssueDateTo";
-    private static final Duration TIMEOUT = Duration.ofSeconds(60);
-    private static final Logger log =
-            LoggerFactory.getLogger(CalabasasScraperService.class);
+    private static final Logger log
+            = LoggerFactory.getLogger(CalabasasScraperService.class);
 
     @Override
     public void clickSearchButton(WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
             WebElement searchButton = wait.until(
                     ExpectedConditions.elementToBeClickable(By.id(SEARCH_BUTTON_ID)));
             if (searchButton.isDisplayed() && searchButton.isEnabled()) {
                 searchButton.click();
             } else {
-                System.out.println("Search button is not clickable or visible.");
+                log.error("Search button is not clickable or visible");
             }
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Error finding or clicking 'Search' button: " + e.getMessage());
+            log.error("Error finding or clicking 'Search' button: {}", e.getMessage());
         }
     }
 
@@ -50,7 +48,7 @@ public class HendersonPageNavigator implements RecordNavigator {
             String fromDate = filterDate.getFromDate();
             String toDate = filterDate.getToDate();
 
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
 
             clickPermitOption(driver);
 
@@ -68,24 +66,23 @@ public class HendersonPageNavigator implements RecordNavigator {
             log.info("Date filtration applied by date : {} to {}", fromDate, toDate);
 
         } catch (Exception e) {
-            System.out.println("Error applying filtration: " + e.getMessage());
+            log.error("Error applying filtration: {}", e.getMessage());
         }
     }
 
     public void clickContactsButton(WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(OVERLAY_ID)));
             WebElement contactsButton = wait.until(
                     ExpectedConditions.elementToBeClickable(By.id(CONTACTS_BUTTON_ID)));
             if (contactsButton.isDisplayed() && contactsButton.isEnabled()) {
                 contactsButton.click();
             } else {
-                System.out.println("Search button is not clickable or visible.");
+                log.error("'Contacts' Button is not clickable or visible");
             }
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Error finding or clicking 'Contact' button: " + e.getMessage());
+            log.error("Error finding or clicking 'Contact' button: {}", e.getMessage());
         }
     }
 
@@ -100,14 +97,14 @@ public class HendersonPageNavigator implements RecordNavigator {
 
     private void clickPermitOption(WebDriver driver) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
             WebElement dropdownElement = wait.until(ExpectedConditions
                     .presenceOfElementLocated(By.id(SEARCH_SELECTOR_ID)));
             Select dropdown = new Select(dropdownElement);
             dropdown.selectByVisibleText(PERMIT_OPTION_ID);
             dropdownElement.click();
         } catch (Exception e) {
-            System.out.println("Error selecting 'Permit' option: " + e.getMessage());
+            log.error("Error selecting 'Permit' option: {}", e.getMessage());
         }
     }
 }

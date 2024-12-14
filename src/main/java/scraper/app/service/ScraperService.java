@@ -37,10 +37,6 @@ public interface ScraperService {
             tasks.add(() -> {
                 List<String> result = pageScraper
                         .scrapeResource(url, pageNumber, filterDate);
-
-                log.info("Finished scrape for Calabasas' page #{}, found: {} records",
-                        pageNumber, result.size());
-
                 allProcessedPermits.addAll(result);
                 return null;
             });

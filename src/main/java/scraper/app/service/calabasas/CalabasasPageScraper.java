@@ -1,12 +1,12 @@
 package scraper.app.service.calabasas;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scraper.app.model.FilterDate;
 import scraper.app.service.DataExtractor;
+import scraper.app.util.WebDriverUtils;
 
 @RequiredArgsConstructor
 public class CalabasasPageScraper {
@@ -24,37 +25,37 @@ public class CalabasasPageScraper {
             + "/PermittingPublic/PermitLandingPagePublic/Index/";
     private static final String SEARCH_ITEMS_TAG = "search-result-item";
     private static final String LINK_TAIL = "Detail/";
-    private static final Duration TIMEOUT = Duration.ofSeconds(10);
     private final CalabasasPageNavigator calabasasPageNavigator;
     private final DataExtractor dataExtractor;
 
     void applyFilters(WebDriver driver, FilterDate filterDate) {
-        log.info("Applying filters with date: {}", filterDate.getIssueDate());
+        log.info("Applying filters on Calabasas website with date: {}", filterDate.getIssueDate());
         try {
             calabasasPageNavigator.applyFiltration(driver, filterDate);
             calabasasPageNavigator.clickSearchButton(driver);
-            log.info("Filters applied successfully");
+            log.info("Calabasas filters applied successfully");
         } catch (Exception e) {
-            log.error("Error while applying filters: {}", e.getMessage(), e);
+            log.error("Error while applying filters on Calabasas website: {}", e.getMessage(), e);
         }
     }
 
     List<WebElement> fetchRecords(WebDriver driver, int pageNumber) {
-        log.info("Fetching records from page {}", pageNumber);
+        log.info("Fetching records from Calabasas page {}", pageNumber);
         try {
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, WebDriverUtils.TIMEOUT);
             List<WebElement> records = wait.until(ExpectedConditions
                     .presenceOfAllElementsLocatedBy(By.className(SEARCH_ITEMS_TAG)));
-            log.info("Fetched {} records from page {}", records.size(), pageNumber);
+            log.info("Found {} records on Calabasas page {}", records.size(), pageNumber);
             return records;
         } catch (Exception e) {
-            log.error("Failed to fetch records on page {}: {}", pageNumber, e.getMessage(), e);
+            log.error("Failed to fetch records on Calabasas page {}: {}",
+                    pageNumber, e.getMessage(), e);
             return null;
         }
     }
 
     List<String> openLinksFromRecords(List<WebElement> records, WebDriver driver, int pageNumber) {
-        log.info("Opening links from records");
+        log.info("Opening links from Calabasas records");
         List<String> processedRecords = Collections.synchronizedList(new ArrayList<>());
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
 
@@ -73,8 +74,7 @@ public class CalabasasPageScraper {
             driver.switchTo().window(tabHandle);
 
             try {
-                WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+                WebDriverUtils.waitForPageToLoad(driver, WebDriverUtils.TIMEOUT);
 
                 String data = dataExtractor.extractRecords(null, driver, null);
                 processedRecords.add(data);
@@ -91,6 +91,11 @@ public class CalabasasPageScraper {
 
     private String fetchLinksTailsFromRecords(WebElement record) {
         try {
+            if (!record.isDisplayed() || !record.isEnabled()) {
+                log.warn("Record element is not valid: {}", record);
+                return null;
+            }
+
             WebElement linkElement = record.findElement(By.tagName("a"));
             String onclickValue = linkElement.getAttribute("onclick");
 
@@ -102,6 +107,10 @@ public class CalabasasPageScraper {
                 log.warn("Link was not found in record: {}", record);
                 return null;
             }
+        } catch (StaleElementReferenceException e) {
+            log.error("Stale element reference error while fetching link tail: {}",
+                    e.getMessage(), e);
+            return null;
         } catch (Exception e) {
             log.error("Error while fetching link tail: {}", e.getMessage(), e);
             return null;
