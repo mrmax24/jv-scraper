@@ -8,16 +8,17 @@ simultaneously, and processing each website within its own thread.
 
 ## Used technologies and libraries:
 | Technology          | Version   |
+|:--------------------|:----------|
 | `JDK`               | `17`      |
 | `Maven`             | `4.0.0`   |
 | `Lombok`            | `1.18.34` |
 | `Spring Boot`       | `3.3.4`   |
 | `Selenium Java`     | `4.27.0`  |
 | `Slf4j api`         | `2.0.0`   |
-| `Logback`           | `1.4.12`   |
-| `logback`           | `1.4.12`   |
+| `Logback`           | `1.4.12`  |
+| `logback`           | `1.4.12`  |
 | `Webdriver manager` | `5.9.2`   |
-| `Checkstyle plugin`  | `3.1.1`   |
+| `Checkstyle plugin` | `3.1.1`   |
 
 # How does it work
 1. The scraper opens two websites in separate threads: [Henderson](https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search)
