@@ -21,8 +21,8 @@ public class HandersonScraperService implements ScraperService {
 
     @Override
     public List<String> scrape(String url, int pages,
-                                        FilterDate filterDate,
-                                        ThreadPoolManager threadPoolManager) {
+                               FilterDate filterDate,
+                               ThreadPoolManager threadPoolManager) {
         List<String> strings = ScraperService.super.scrape(
                 url, pages, filterDate, threadPoolManager);
         log.info("Total records scraped for the Henderson city website: {}",

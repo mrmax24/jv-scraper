@@ -59,7 +59,7 @@ public class CalabasasPageScraper {
         JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
 
         for (WebElement record : records) {
-            String tail = fetchLinksTailsFromRecords(driver, record);
+            String tail = fetchLinksTailsFromRecords(record);
             if (tail != null) {
                 String fullUrl = PERMIT_DETAILS_LINK + tail;
                 jsExecutor.executeScript("window.open('" + fullUrl + "', '_blank');");
@@ -88,7 +88,7 @@ public class CalabasasPageScraper {
         return processedRecords;
     }
 
-    private String fetchLinksTailsFromRecords(WebDriver driver, WebElement record) {
+    private String fetchLinksTailsFromRecords(WebElement record) {
         for (int attempt = 1; attempt <= ATTEMPTS_NUMBER; attempt++) {
             try {
                 WebElement linkElement = record.findElement(By.tagName("a"));
@@ -116,4 +116,3 @@ public class CalabasasPageScraper {
         return null;
     }
 }
-

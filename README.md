@@ -1,29 +1,33 @@
 # Simple web scrapper
 ```bash
-A Simple Java application written using SpringBoot and Selenium library, enabling scraping 
-of textual data from a website with filter-based search. It also opens additional tabs to 
-extract detailed information by executing JavaScript commands within the code.
+A Simple Java application written using SpringBoot and Selenium library, enabling scraping
+of textual data from a website with filter-based search. This works within a multithreaded
+environment, opening each page with records within a separate thread, scraping multiple tabs
+simultaneously, and processing each website within its own thread.
 ```
 
 ## Used technologies and libraries:
-| Technology           | Version   |
-|:---------------------|:----------|
-| `JDK`                | `17`      |
-| `Maven`              | `4.0.0`   |
-| `Lombok`             | `1.18.34` |
-| `Spring Boot`        | `2.5.4`   |
-| `Selenium Java`      | `4.25.0`  |
-| `Web driver manager` | `5.6.1`   |
+| Technology          | Version   |
+| `JDK`               | `17`      |
+| `Maven`             | `4.0.0`   |
+| `Lombok`            | `1.18.34` |
+| `Spring Boot`       | `3.3.4`   |
+| `Selenium Java`     | `4.27.0`  |
+| `Slf4j api`         | `2.0.0`   |
+| `Logback`           | `1.4.12`   |
+| `logback`           | `1.4.12`   |
+| `Webdriver manager` | `5.9.2`   |
 | `Checkstyle plugin`  | `3.1.1`   |
 
 # How does it work
-1. The scraper opens this [link](https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search) and clicks the "Search" button.
-2. The next step is to extract the first record and open the link inside it.
-3. After opening this link in a new tab, the scraper extracts additional data.
-4. Then, the scraper clicks the "Contacts" button and reads the data table.
-5. The tab is closed, and we return to the main page to continue scraping all subsequent records.
-6. When we reach the last record, we switch to the next page.
-7. The data is saved to a file output.csv
+1. The scraper opens two websites in separate threads: [Henderson](https://hendersonnv-energovweb.tylerhost.net/apps/selfservice#/search)
+and [Calabasas](https://ci-calabasas-ca.smartgovcommunity.com/ApplicationPublic/ApplicationSearchAdvanced/Search)
+2. Then, the scraper processes each page of pagination in separate threads.
+3. The next step is filtering and searching for records.
+4. Once a page with records is opened, the scraper reads basic information and opens each record in a new tab to extract additional data.
+5. After opening a link in a new tab, the scraper extracts the additional data.
+6. The extracted data is saved to output_1.csv and output_2.csv.
+7. Logs are saved in logs/scraper.log.
 
 # How to run this program
 1. Download the code from Github by this [link](https://github.com/mrmax24/scraper-app)
