@@ -1,0 +1,44 @@
+INFO  i.g.bonigarcia.wdm.WebDriverManager - Using chromedriver 131.0.6778.108 (resolved driver for Chrome 131)
+INFO  i.g.bonigarcia.wdm.WebDriverManager - Exporting webdriver.chrome.driver as C:\Users\Code&Care0157\.cache\selenium\chromedriver\win64\131.0.6778.108\chromedriver.exe
+INFO  s.a.s.calabasas.CalabasasPageScraper - Applying filters with date: Last 30 Days
+INFO  s.a.s.calabasas.CalabasasPageScraper - Filters applied successfully
+INFO  s.a.s.c.CalabasasScraperService - Applying filters on Henderson website with date: null
+INFO  s.a.s.c.CalabasasScraperService - Applying filters on Henderson website with date: null
+INFO  s.a.s.c.CalabasasScraperService - Date filtration applied by date : 09/01/2024 to 09/30/2024
+INFO  s.a.s.c.CalabasasScraperService - Henderson filters applied successfully
+INFO  s.a.s.c.CalabasasScraperService - Fetching records from Henderson  page 1
+INFO  s.a.s.calabasas.CalabasasPageScraper - Applying filters with date: Last 30 Days
+INFO  s.a.s.c.CalabasasScraperService - Date filtration applied by date : 09/01/2024 to 09/30/2024
+INFO  s.a.s.c.CalabasasScraperService - Henderson filters applied successfully
+INFO  s.a.s.c.CalabasasScraperService - Fetching records from Henderson  page 2
+INFO  s.a.s.calabasas.CalabasasPageScraper - Filters applied successfully
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetching records from page 1
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetched 10 records from page 1
+INFO  s.a.s.calabasas.CalabasasPageScraper - Opening links from records on page 1
+ERROR s.a.s.c.CalabasasScraperService - Failed to click next page button after 3 attempts
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetching records from page 2
+INFO  s.a.s.calabasas.CalabasasPageScraper - Fetched 10 records from page 2
+INFO  s.a.s.calabasas.CalabasasPageScraper - Opening links from records on page 2
+INFO  s.a.s.c.CalabasasScraperService - Fetched 10 records from Henderson page 1
+ERROR s.a.s.c.CalabasasScraperService - Start scraping Henderson website records
+INFO  s.a.s.c.CalabasasScraperService - Fetched 10 records from Henderson page 2
+ERROR s.a.s.c.CalabasasScraperService - Start scraping Henderson website records
+INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tabs
+INFO  s.a.s.calabasas.CalabasasPageScraper - Scraping data from tabs
+INFO  s.a.s.c.CalabasasScraperService - Successfully scraped Calabasas page 1
+INFO  s.a.s.c.CalabasasScraperService - Successfully scraped Calabasas page 2
+INFO  s.a.s.c.CalabasasScraperService - Total records fetched for the Calabasas city website: 20
+INFO  scraper.app.Main - Calabasas scraping task completed successfully
+ERROR s.a.s.c.CalabasasScraperService - Error finding or clicking 'Contact' button: element click intercepted: Element <button id="button-TabButton-..." name="button-TabButton" class="btn btn-primary css-btn-primary tab-button ng-scope buttonInactive" tabindex="800" ng-class="{buttonInactive: vm.tabNavigatorService.selectedTab !== 7}" ng-click="vm.tabNavigatorService.navigate(vm.tabNavigatorService.tabConstant.Contacts)" role="tab" data-toggle="tab" ng-if="vm.entityTabsService.showContactsTab">Contacts</button> is not clickable at point (679, 587). Other element would receive the click: <div id="overlay" aria-label="Processing" tabindex="0" ng-show="vm.showProcessing()" aria-hidden="false" style="opacity: 0.4; position: fixed; top: 0px; left: 0px; background-color: black; width: 100%; height: 100%; z-index: 1030;" class=""></div>
+  (Session info: chrome=131.0.6778.140)
+Build info: version: '4.19.1', revision: 'abe0ee07dc'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '17.0.11'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Command: [97c91d834997fd69d16906a850cc562a, clickElement {id=f.78C23575D0B6C37FA300EE718078B67E.d.3B76A16D5CB6A7287F779DDB8B3EEF56.e.2032}]
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 131.0.6778.140, chrome: {chromedriverVersion: 131.0.6778.108 (3b014839fbc..., userDataDir: C:\Users\CODE&C~1\AppData\L...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:50189}, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:50189/devtoo..., se:cdpVersion: 131.0.6778.140, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Element: [[ChromeDriver: chrome on windows (97c91d834997fd69d16906a850cc562a)] -> id: button-TabButton-Contacts]
+Session ID: 97c91d834997fd69d16906a850cc562a
+INFO  s.a.s.c.CalabasasScraperService - Total records scraped for the Henderson city website: 20
+INFO  scraper.app.Main - Henderson scraping task completed successfully
+INFO  scraper.app.Main - 
+Total scraping time: 164

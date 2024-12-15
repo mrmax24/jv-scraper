@@ -57,7 +57,7 @@ public class CalabasasDataExtractor implements DataExtractor {
         String cents = getElementText(driver, By.xpath(CENTS_XPATH));
 
         builder.append(title).append(NEW_LINE)
-                .append(description).append(": ")
+                .append(description).append(NEW_LINE)
                 .append("Status: ").append(status).append(NEW_LINE)
                 .append(feesLabel).append(": ")
                 .append(currencyUnit)

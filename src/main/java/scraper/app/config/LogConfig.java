@@ -23,6 +23,7 @@ public class LogConfig {
         fileAppender.setFile("logs/scraper.log");
         fileAppender.setEncoder(encoder);
         fileAppender.setContext(context);
+        fileAppender.setAppend(false);
 
         ThresholdFilter fileFilter = new ThresholdFilter();
         fileFilter.setLevel("INFO");
