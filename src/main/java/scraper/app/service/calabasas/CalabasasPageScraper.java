@@ -29,7 +29,7 @@ public class CalabasasPageScraper {
     private final DataExtractor dataExtractor;
 
     void applyFilters(WebDriver driver, FilterDate filterDate) {
-        log.info("Applying filters with date: {}", filterDate.getIssueDate());
+        log.info("Applying filters with date on Calabasas page: {}", filterDate.getIssueDate());
         try {
             calabasasPageNavigator.applyFiltration(driver, filterDate);
             calabasasPageNavigator.clickSearchButton(driver);

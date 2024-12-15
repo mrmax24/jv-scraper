@@ -13,8 +13,8 @@ import scraper.app.util.ComponentsInitializer;
 import scraper.app.util.ScraperTimer;
 
 public class Main {
-    public static final int PAGE_NUMBER = 2;
-    public static final int THREAD_POOL_SIZE = 2;
+    public static final int PAGE_NUMBER = 10;
+    public static final int THREAD_POOL_SIZE = 10;
     public static final String FROM_DATE = "09/01/2024";
     public static final String TO_DATE = "09/30/2024";
     public static final String ISSUED_DATE = "Last 30 Days";

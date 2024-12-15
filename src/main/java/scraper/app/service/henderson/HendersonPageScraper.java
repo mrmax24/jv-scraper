@@ -66,8 +66,6 @@ public class HendersonPageScraper implements PageScraper {
     }
 
     private void applyFilters(WebDriver driver, FilterDate filterDate) {
-        log.info("Applying filters on Henderson website with date: {}",
-                filterDate.getIssueDate());
         try {
             hendersonPageNavigator.applyFiltration(driver, filterDate);
             hendersonPageNavigator.clickSearchButton(driver);
