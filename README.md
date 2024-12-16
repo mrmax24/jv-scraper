@@ -16,7 +16,6 @@ simultaneously, and processing each website within its own thread.
 | `Selenium Java`     | `4.27.0`  |
 | `Slf4j api`         | `2.0.0`   |
 | `Logback`           | `1.4.12`  |
-| `logback`           | `1.4.12`  |
 | `Webdriver manager` | `5.9.2`   |
 | `Checkstyle plugin` | `3.1.1`   |
 
