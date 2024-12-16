@@ -94,7 +94,7 @@ public class HendersonPageScraper implements PageScraper {
 
     private void processRecords(WebDriver driver, List<WebElement> records,
                                 List<String> processedPermits, int pageNumber) {
-        log.error("Start scraping Henderson website records");
+        log.info("Start scraping Henderson website records");
         String originalWindow = driver.getWindowHandle();
         for (WebElement record : records) {
             try {
